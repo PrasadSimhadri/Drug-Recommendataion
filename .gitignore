@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Model files
+model/*.pt
+model/hgt_drug_recommender/
+
+# Python
+__pycache__/
+*.pyc
+backend/__pycache__/

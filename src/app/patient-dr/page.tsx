@@ -3,11 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar } from "react-icons/tb";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbLoader2 } from "react-icons/tb";
+
+// API base URL
+const API_URL = "http://localhost:8000";
+
+interface DrugRecommendation {
+    cuid: string;
+    score: number;
+    concept_idx: number;
+}
 
 export default function PatientDR() {
     const pathname = usePathname();
     const [patientId, setPatientId] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [recommendations, setRecommendations] = useState<DrugRecommendation[]>([]);
 
     const navItems = [
         { name: "Home", href: "/" },
@@ -16,19 +28,58 @@ export default function PatientDR() {
         { name: "Disease - Drug", href: "/disease-drug" },
     ];
 
-    // Sample recommended drugs data (will be fetched from backend later)
-    const recommendedDrugs = [
-        { rank: 1, name: "Metformin", cuid: "CUID", score: 0.84, isTop: true },
-        { rank: 2, name: "Dolo", cuid: "CUID", score: 0.72, isTop: false },
-        { rank: 3, name: "Aspirin", cuid: "CUID", score: 0.68, isTop: false },
-        { rank: 4, name: "Lisinopril", cuid: "CUID", score: 0.61, isTop: false },
-        { rank: 5, name: "Atorvastatin", cuid: "CUID", score: 0.55, isTop: false },
-    ];
+    const handleSearch = async () => {
+        if (!patientId.trim()) {
+            setError("Please enter a Patient ID");
+            return;
+        }
 
-    const handleSearch = () => {
-        // Will be implemented with backend integration
-        console.log("Searching for patient:", patientId);
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch(`${API_URL}/api/recommend`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    patient_id: patientId,
+                    top_k: 5
+                }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.detail || "Failed to get recommendations");
+            }
+
+            const data = await response.json();
+            setRecommendations(data.recommendations);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "An error occurred");
+            setRecommendations([]);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    // Format recommendations for display
+    const displayDrugs = recommendations.length > 0
+        ? recommendations.map((drug, index) => ({
+            rank: index + 1,
+            name: drug.cuid,
+            cuid: `IDX: ${drug.concept_idx}`,
+            score: drug.score,
+            isTop: index === 0
+        }))
+        : [
+            { rank: 1, name: "—", cuid: "", score: 0, isTop: true },
+            { rank: 2, name: "—", cuid: "", score: 0, isTop: false },
+            { rank: 3, name: "—", cuid: "", score: 0, isTop: false },
+            { rank: 4, name: "—", cuid: "", score: 0, isTop: false },
+            { rank: 5, name: "—", cuid: "", score: 0, isTop: false },
+        ];
 
     return (
         <div className="min-h-screen bg-[#F9F9F9] relative overflow-hidden">
@@ -87,16 +138,26 @@ export default function PatientDR() {
                             type="text"
                             value={patientId}
                             onChange={(e) => setPatientId(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                             className="w-64 px-4 py-2 border-b border-[#333] bg-transparent text-sm focus:outline-none focus:border-[#427466]"
-                            placeholder=""
+                            placeholder="Enter patient ID (e.g., 0, 1, 2...)"
                         />
                         <button
                             onClick={handleSearch}
-                            className="px-6 py-2 bg-[#427466] text-white rounded-lg text-sm font-medium hover:bg-[#365f54] transition-colors"
+                            disabled={loading}
+                            className="px-6 py-2 bg-[#427466] text-white rounded-lg text-sm font-medium hover:bg-[#365f54] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
-                            Search
+                            {loading && <TbLoader2 className="w-4 h-4 animate-spin" />}
+                            {loading ? "Searching..." : "Search"}
                         </button>
                     </div>
+
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                            {error}
+                        </div>
+                    )}
 
                     {/* Two Column Layout - Network and Recommendations */}
                     <div className="grid grid-cols-[1fr_420px] gap-5 h-[calc(100vh-280px)]">
@@ -123,7 +184,16 @@ export default function PatientDR() {
                             {/* Network Visualization Area */}
                             <div className="h-full flex flex-col">
                                 <div className="flex-1 flex items-center justify-center">
-                                    {/* Empty network area - will be populated with actual graph */}
+                                    {loading ? (
+                                        <div className="text-center">
+                                            <TbLoader2 className="w-12 h-12 text-[#427466] animate-spin mx-auto mb-2" />
+                                            <p className="text-[#666]">Loading recommendations...</p>
+                                        </div>
+                                    ) : recommendations.length > 0 ? (
+                                        <p className="text-[#666]">Patient ID: {patientId}</p>
+                                    ) : (
+                                        <p className="text-[#999]">Enter a Patient ID to see recommendations</p>
+                                    )}
                                 </div>
 
                                 {/* Legend */}
@@ -144,10 +214,10 @@ export default function PatientDR() {
 
                             {/* Drug Recommendations List - Scrollable */}
                             <div className="flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-380px)] pr-2">
-                                {recommendedDrugs.map((drug) => (
+                                {displayDrugs.map((drug) => (
                                     <div
                                         key={drug.rank}
-                                        className={`p-4 rounded-xl border ${drug.isTop
+                                        className={`p-4 rounded-xl border ${drug.isTop && recommendations.length > 0
                                             ? "bg-[#F0FDF4] border-[#86EFAC]"
                                             : "bg-white border-[#e5e5e5]"
                                             }`}
@@ -155,7 +225,7 @@ export default function PatientDR() {
                                         <div className="flex items-start gap-3">
                                             {/* Rank Badge */}
                                             <span
-                                                className={`w-7 h-7 flex items-center justify-center rounded-md text-sm font-semibold ${drug.isTop
+                                                className={`w-7 h-7 flex items-center justify-center rounded-md text-sm font-semibold ${drug.isTop && recommendations.length > 0
                                                     ? "bg-[#84CC16] text-white"
                                                     : "bg-[#E5E7EB] text-[#333]"
                                                     }`}
@@ -167,24 +237,28 @@ export default function PatientDR() {
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start mb-2">
                                                     <span className="text-base font-medium text-[#333]">
-                                                        {drug.name} - <span className="text-[#666] text-sm">{drug.cuid}</span>
+                                                        {drug.name} {drug.cuid && <span className="text-[#666] text-sm">- {drug.cuid}</span>}
                                                     </span>
-                                                    <div className="text-right">
-                                                        <span className="text-lg font-bold text-[#333]">{drug.score}</span>
-                                                        <p className="text-xs text-[#666]">score</p>
-                                                    </div>
+                                                    {recommendations.length > 0 && (
+                                                        <div className="text-right">
+                                                            <span className="text-lg font-bold text-[#333]">{drug.score.toFixed(2)}</span>
+                                                            <p className="text-xs text-[#666]">score</p>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Progress Bar */}
-                                                <div className="w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-[#2563EB] rounded-full"
-                                                        style={{ width: `${drug.score * 100}%` }}
-                                                    />
-                                                </div>
+                                                {recommendations.length > 0 && (
+                                                    <div className="w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-[#2563EB] rounded-full"
+                                                            style={{ width: `${Math.min(drug.score * 100, 100)}%` }}
+                                                        />
+                                                    </div>
+                                                )}
 
                                                 {/* Top Recommendation Label */}
-                                                {drug.isTop && (
+                                                {drug.isTop && recommendations.length > 0 && (
                                                     <p className="text-xs text-[#427466] mt-2 flex items-center gap-1">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-[#427466]"></span>
                                                         Highest confidence recommendation
