@@ -14,7 +14,8 @@ export default function Dashboard() {
         { name: "Home", href: "/" },
         { name: "Dashboard", href: "/dashboard" },
         { name: "Patient DR", href: "/patient-dr" },
-        { name: "Disease - Drug", href: "/disease-drug" },
+        // { name: "Disease - Drug", href: "/disease-drug" },
+        { name: "Model Comparison", href: "/model-compare" },
     ];
 
     const nodeTypes = ["Patient", "Visit"];
