@@ -621,11 +621,11 @@ export default function ModelComparison() {
                         </div>
 
                         {/* Visualization Type Toggle */}
-                        <div className="flex items-center justify-center gap-4 mb-8">
+                        <div className="flex items-center justify-center gap-4 mb-8 cursor-pointer">
                             <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
                                 <button
                                     onClick={() => setVizType('bar')}
-                                    className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'bar'
+                                    className={` cursor-pointer flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'bar'
                                             ? 'bg-white text-[#427466] shadow-md'
                                             : 'text-gray-500 hover:text-gray-700'
                                         }`}
@@ -635,7 +635,7 @@ export default function ModelComparison() {
                                 </button>
                                 <button
                                     onClick={() => setVizType('radar')}
-                                    className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'radar'
+                                    className={` cursor-pointer flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'radar'
                                             ? 'bg-white text-[#427466] shadow-md'
                                             : 'text-gray-500 hover:text-gray-700'
                                         }`}

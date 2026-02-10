@@ -2,13 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork } from "react-icons/tb";
+import GraphView from "./components/GraphView";
 
 export default function Dashboard() {
     const pathname = usePathname();
     const [nodeType, setNodeType] = useState("Patient");
     const [relationshipType, setRelationshipType] = useState("Patient Drugs");
+    const [inputValue, setInputValue] = useState("");
+    const [records, setRecords] = useState<any>({});
+    const [selectedNode, setSelectedNode] = useState<any>(null);
+    const [availableIds, setAvailableIds] = useState<string[]>([]);
+    const [loadingIds, setLoadingIds] = useState(false);
+    const [isQuerying, setIsQuerying] = useState(false);
 
     const navItems = [
         { name: "Home", href: "/" },
@@ -31,6 +38,81 @@ export default function Dashboard() {
     };
 
     const currentRelationshipTypes = getRelationshipTypes();
+
+    // Fetch available IDs when nodeType changes
+    useEffect(() => {
+        async function fetchIds() {
+            if (nodeType !== "Patient" && nodeType !== "Visit") {
+                setAvailableIds([]);
+                return;
+            }
+
+            setLoadingIds(true);
+            try {
+                const queryType = nodeType === "Patient" ? "ALL_PATIENTS" : "ALL_VISITS";
+                const res = await fetch("/api/query", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ queryType, params: {} })
+                });
+                const data = await res.json();
+                if (data.ids) {
+                    setAvailableIds(data.ids);
+                    if (data.ids.length > 0) {
+                        setInputValue(data.ids[0]); // Set first ID as default
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch IDs:", err);
+                setAvailableIds([]);
+            }
+            setLoadingIds(false);
+        }
+        fetchIds();
+    }, [nodeType]);
+
+    // Map relationship types to query types
+    const getQueryType = () => {
+        const mapping: Record<string, string> = {
+            "Patient Drugs": "PATIENT_DRUGS",
+            "Patient Diagnosis": "PATIENT_DIAGNOSES",
+            "Patient Visit": "PATIENT_ADMISSIONS",
+            "Visit Diagnosis": "VISIT_DIAGNOSES",
+            "Visit Drugs": "VISIT_DRUGS"
+        };
+        return mapping[relationshipType];
+    };
+
+    async function runQuery() {
+        if (!inputValue || inputValue.trim() === "") {
+            alert("Please select a valid ID");
+            return;
+        }
+
+        setIsQuerying(true);
+        setSelectedNode(null);
+        try {
+            const params = nodeType === "Patient"
+                ? { id: inputValue.trim() }
+                : { visit: inputValue.trim() };
+
+            const res = await fetch("/api/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    queryType: getQueryType(),
+                    params
+                })
+            });
+
+            const data = await res.json();
+            setRecords(data);
+        } catch (err) {
+            console.error("Query failed:", err);
+            alert("Failed to execute query");
+        }
+        setIsQuerying(false);
+    }
 
     return (
         <div className="min-h-screen bg-[#F9F9F9] relative">
@@ -153,73 +235,127 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* ID Selection and Run Query Button */}
+                        <div className="mt-5 flex gap-4 items-end">
+                            {/* ID Dropdown */}
+                            <div className="flex-1">
+                                <label className="block text-sm text-[#333] mb-2">
+                                    {nodeType === "Patient" ? "Select Patient ID" : "Select Visit ID"}
+                                </label>
+                                <select
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    className="w-full px-4 py-3 bg-white text-[#1a1a1a] border border-[#1a1a1a] rounded-lg appearance-none cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-[#427466]"
+                                    disabled={loadingIds}
+                                >
+                                    <option value="">
+                                        {loadingIds ? "Loading..." : `-- Select ${nodeType} ID --`}
+                                    </option>
+                                    {availableIds.map(id => (
+                                        <option key={id} value={id}>{id}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Run Query Button */}
+                            <button
+                                onClick={runQuery}
+                                disabled={isQuerying || !inputValue}
+                                className="px-8 py-3 bg-[#427466] text-white rounded-lg font-semibold text-sm hover:bg-[#365f54] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                            >
+                                {isQuerying ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        Querying...
+                                    </>
+                                ) : (
+                                    <>
+                                        <TbNetwork className="w-4 h-4" />
+                                        Run Query
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Two Column Layout - Graph Visualization and Node Details */}
-                    <div className="grid grid-cols-[1fr_420px] h-[calc(100vh-100px)]">
+                    <div className="grid grid-cols-[1fr_420px] gap-5">
                         {/* Graph Visualization */}
-                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 relative w-250">
-                            {/* Zoom Controls - Top Right */}
-                            <div className="absolute top-5 right-5 flex gap-2">
-                                <button className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">
-                                    <TbZoomIn className="w-5 h-5 text-[#666]" />
-                                </button>
-                                <button className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">
-                                    <TbZoomOut className="w-5 h-5 text-[#666]" />
-                                </button>
-                                <button className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">
-                                    <TbArrowsMaximize className="w-5 h-5 text-[#666]" />
-                                </button>
-                            </div>
-
-                            {/* Graph Area */}
-                            <div className="h-full flex flex-col">
-                                <div className="flex-1 flex items-center justify-center">
-                                    {/* Empty graph area - will be populated with actual graph */}
-                                </div>
-
-                                {/* Node Types Legend - Bottom Left */}
-                                <div className="absolute bottom-5 left-5">
-                                    <div className="inline-block bg-white border border-[#e5e5e5] rounded-lg px-4 py-3">
-                                        <h4 className="text-xs font-semibold text-[#666] tracking-wider mb-3">
-                                            NODE TYPES
-                                        </h4>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-3 h-3 rounded-full bg-[#DC2626]"></span>
-                                                <span className="text-sm text-[#333]">Patient</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-3 h-3 rounded-full bg-[#2563EB]"></span>
-                                                <span className="text-sm text-[#333]">Drug</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-3 h-3 rounded-full bg-[#EAB308]"></span>
-                                                <span className="text-sm text-[#333]">Disease</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-3 h-3 rounded-full bg-[#000000]"></span>
-                                                <span className="text-sm text-[#333]">Visit</span>
-                                            </div>
-                                        </div>
+                        <div className="relative">
+                            {records.graph ? (
+                                <GraphView
+                                    graph={records.graph}
+                                    onNodeClick={setSelectedNode}
+                                />
+                            ) : (
+                                <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] p-12 h-[600px] flex items-center justify-center">
+                                    <div className="text-center">
+                                        <TbNetwork className="w-16 h-16 text-[#d1d1d1] mx-auto mb-4" />
+                                        <p className="text-[#666] text-sm">
+                                            {isQuerying ? "Loading graph..." : "Select options and click Run Query to visualize the knowledge graph"}
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Right Panel - Node Details */}
-                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5">
-                            <h3 className="text-xs font-semibold text-[#666] tracking-wider mb-5">
-                                NODE DETAILS
-                            </h3>
-                            {/* Node details will be populated when a node is selected */}
-                            <div className="text-sm text-[#999]">
-                                Select a node to view details
+                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 h-[600px] overflow-y-auto">
+                            <div className="flex items-center justify-between mb-5">
+                                <h3 className="text-xs font-semibold text-[#666] tracking-wider">
+                                    NODE DETAILS
+                                </h3>
+                                {selectedNode && (
+                                    <button
+                                        onClick={() => setSelectedNode(null)}
+                                        className="cursor-pointer text-xs text-[#427466] hover:text-[#365f54] font-medium"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
                             </div>
+
+                            {selectedNode ? (
+                                <div className="space-y-4">
+                                    {/* Node Type Badge */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-[#888] uppercase tracking-wide">Type</span>
+                                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${selectedNode.group === "Patient" ? "bg-[#427466]/10 text-[#427466]" :
+                                            selectedNode.group === "Drug" ? "bg-[#10b981]/10  text-[#10b981]" :
+                                                selectedNode.group === "Diagnosis" ? "bg-[#f59e0b]/10 text-[#f59e0b]" :
+                                                    "bg-[#8b5cf6]/10 text-[#8b5cf6]"
+                                            }`}>
+                                            {selectedNode.group}
+                                        </span>
+                                    </div>
+
+                                    {/* Node Properties */}
+                                    {selectedNode.properties && Object.entries(selectedNode.properties).map(([key, value]) => (
+                                        <div key={key} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                            <div className="text-[10px] font-bold text-[#888] uppercase tracking-wide mb-1">
+                                                {key.replace(/_/g, " ")}
+                                            </div>
+                                            <div className="text-sm text-[#1a1a1a] font-medium break-words">
+                                                {String(value)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-center">
+                                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                                        <TbUserHeart className="w-6 h-6 text-gray-400" />
+                                    </div>
+                                    <p className="text-sm text-[#999]">
+                                        Click a node in the graph to view its details
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
