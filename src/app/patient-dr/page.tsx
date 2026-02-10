@@ -6,7 +6,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
     TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbLoader2,
     TbChevronDown, TbChevronUp, TbPill, TbTag, TbCode, TbDatabase,
-    TbSearch, TbUser
+    TbSearch, TbUser, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork
 } from "react-icons/tb";
 
 // API base URLs
@@ -563,29 +563,38 @@ export default function PatientDR() {
                     </h1>
                 </div>
                 <nav className="flex items-center gap-4 pr-6">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
-                                ? "bg-[#427466] text-white"
-                                : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
-                                }`}
-                        >
-                            {item.name}
-                        </Link>
-                    ))}
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
+                                    ? "bg-[#427466] text-white"
+                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                    }`}
+                            >
+                                {Icon && <Icon className="w-4 h-4" />}
+                                {item.name}
+                            </Link>
+                        );
+                    })}
                 </nav>
             </header>
 
             {/* Main Content */}
             <main className="relative z-10">
                 <div className="w-full px-8 py-6">
-                    <div className="mb-6">
-                        <h2 className="text-[32px] font-semibold text-[#1a1a1a] tracking-tight">
-                            Patient Drug Recommendation
-                        </h2>
-                        <p className="text-[#666] text-base mt-1">
+                    <div className="mb-8 animate-fade-in">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-xl bg-gradient-to-br from-[#427466] to-[#365f54]">
+                                <TbUserHeart className="w-6 h-6 text-white" />
+                            </div>
+                            <h2 className="text-[32px] font-bold text-[#1a1a1a] tracking-tight">
+                                Patient Drug Recommendation
+                            </h2>
+                        </div>
+                        <p className="text-[#666] text-base mt-1 ml-14">
                             Personalized drug recommendations based on patient profile and network
                         </p>
                     </div>
@@ -624,8 +633,9 @@ export default function PatientDR() {
                         {/* Left Panel - Network */}
                         <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 relative overflow-hidden h-[520px]">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-sm font-semibold text-[#333] tracking-wide">
-                                    PATIENT - DRUG NETWORK
+                                <h3 className="text-sm font-semibold text-[#333] flex items-center gap-2">
+                                    <TbNetwork className="w-4 h-4 text-[#427466]" />
+                                    Patient - Drug Network
                                 </h3>
                                 <div className="flex gap-2">
                                     <button onClick={handleZoomIn} className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">

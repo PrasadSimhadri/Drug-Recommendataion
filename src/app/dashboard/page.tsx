@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize } from "react-icons/tb";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork } from "react-icons/tb";
 
 export default function Dashboard() {
     const pathname = usePathname();
@@ -54,18 +54,22 @@ export default function Dashboard() {
 
                 {/* Navigation */}
                 <nav className="flex items-center gap-4 pr-6">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
                                     ? "bg-[#427466] text-white"
                                     : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
-                                }`}
-                        >
-                            {item.name}
-                        </Link>
-                    ))}
+                                    }`}
+                            >
+                                {Icon && <Icon className="w-4 h-4" />}
+                                {item.name}
+                            </Link>
+                        );
+                    })}
                 </nav>
             </header>
 
@@ -73,19 +77,25 @@ export default function Dashboard() {
             <main className="relative z-10">
                 <div className="w-full px-8 py-6">
                     {/* Dashboard Header */}
-                    <div className="mb-6">
-                        <h2 className="text-[32px] font-semibold text-[#1a1a1a] tracking-tight">
-                            Graph Exploration Dashboard
-                        </h2>
-                        <p className="text-[#666] text-base mt-1">
+                    <div className="mb-8 animate-fade-in">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-xl bg-gradient-to-br from-[#427466] to-[#365f54]">
+                                <TbLayoutDashboard className="w-6 h-6 text-white" />
+                            </div>
+                            <h2 className="text-[32px] font-bold text-[#1a1a1a] tracking-tight">
+                                Graph Exploration Dashboard
+                            </h2>
+                        </div>
+                        <p className="text-[#666] text-base mt-1 ml-14">
                             Interactive knowledge graph visualization and node relationship analysis
                         </p>
                     </div>
 
                     {/* Graph Controls - Full Width on Top */}
                     <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 mb-5">
-                        <h3 className="text-xs font-semibold text-[#666] tracking-wider mb-5">
-                            GRAPH CONTROLS
+                        <h3 className="text-sm font-semibold text-[#333] mb-4 flex items-center gap-2">
+                            <TbArrowsMaximize className="w-4 h-4 text-[#427466]" />
+                            Graph Controls
                         </h3>
 
                         <div className="flex gap-6">

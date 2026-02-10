@@ -6,8 +6,10 @@ import { useState, useEffect } from "react";
 import {
     TbBrain, TbNetwork, TbChartBar, TbTrophy, TbTargetArrow,
     TbSparkles, TbGraph, TbTopologyRing, TbLayersLinked, TbBinaryTree,
-    TbCheck
+    TbCheck, TbRadar
 } from "react-icons/tb";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart } from "react-icons/tb";
+
 
 // Model data with descriptions and metrics
 const models = [
@@ -150,6 +152,178 @@ type Model = {
     };
 };
 
+// RadarChart Component
+function RadarChart({ models }: { models: Model[] }) {
+    const [hoveredModel, setHoveredModel] = useState<string | null>(null);
+
+    const chartSize = 500;
+    const center = chartSize / 2;
+    const maxRadius = 200;
+
+    // 4 metrics as axes
+    const metrics = [
+        { key: 'recall@5', label: 'Recall @5', angle: 0 },
+        { key: 'recall@10', label: 'Recall @10', angle: 90 },
+        { key: 'precision@5', label: 'Precision @5', angle: 180 },
+        { key: 'precision@10', label: 'Precision @10', angle: 270 }
+    ];
+
+    // Convert angle to radians and calculate point
+    const getPoint = (angle: number, value: number) => {
+        const radian = (angle - 90) * (Math.PI / 180);
+        const radius = maxRadius * value;
+        return {
+            x: center + radius * Math.cos(radian),
+            y: center + radius * Math.sin(radian)
+        };
+    };
+
+    // Create polygon path for a model
+    const getPolygonPath = (model: Model) => {
+        const points = metrics.map(metric => {
+            const value = model.metrics[metric.key as keyof typeof model.metrics];
+            return getPoint(metric.angle, value);
+        });
+        return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z';
+    };
+
+    return (
+        <div className="bg-white rounded-2xl w-200  ml-80 border border-[#e5e5e5] p-8">
+            <div className="flex items-center justify-center mb-6">
+                <div className="p-2 rounded-lg bg-[#427466]/10">
+                    <TbRadar className="w-6 h-6 text-[#427466]" />
+                </div>
+                <h4 className="text-xl font-bold text-[#1a1a1a] ml-3">Performance Radar</h4>
+            </div>
+
+            <div className="flex justify-center">
+                <svg width={chartSize} height={chartSize} className="overflow-visible">
+                    {/* Grid circles */}
+                    {[0.25, 0.5, 0.75, 1].map((scale, i) => (
+                        <circle
+                            key={i}
+                            cx={center}
+                            cy={center}
+                            r={maxRadius * scale}
+                            fill="none"
+                            stroke="#e5e5e5"
+                            strokeWidth="1"
+                        />
+                    ))}
+
+                    {/* Axes lines */}
+                    {metrics.map((metric) => {
+                        const point = getPoint(metric.angle, 1);
+                        return (
+                            <line
+                                key={metric.key}
+                                x1={center}
+                                y1={center}
+                                x2={point.x}
+                                y2={point.y}
+                                stroke="#d1d5db"
+                                strokeWidth="1"
+                            />
+                        );
+                    })}
+
+                    {/* Grid value labels */}
+                    {[0.25, 0.5, 0.75, 1].map((scale, i) => (
+                        <text
+                            key={i}
+                            x={center + 5}
+                            y={center - maxRadius * scale}
+                            fontSize="10"
+                            fill="#888"
+                            textAnchor="start"
+                        >
+                            {(scale * 100).toFixed(0)}%
+                        </text>
+                    ))}
+
+                    {/* Model polygons */}
+                    {models.map((model) => {
+                        const isHovered = hoveredModel === model.id;
+                        const opacity = hoveredModel ? (isHovered ? 0.4 : 0.1) : 0.25;
+                        const strokeWidth = isHovered ? 3 : 2;
+
+                        return (
+                            <g key={model.id}>
+                                <path
+                                    d={getPolygonPath(model)}
+                                    fill={model.color}
+                                    fillOpacity={opacity}
+                                    stroke={model.color}
+                                    strokeWidth={strokeWidth}
+                                    className="transition-all duration-300 cursor-pointer"
+                                    onMouseEnter={() => setHoveredModel(model.id)}
+                                    onMouseLeave={() => setHoveredModel(null)}
+                                />
+                                {/* Data points */}
+                                {metrics.map((metric) => {
+                                    const value = model.metrics[metric.key as keyof typeof model.metrics];
+                                    const point = getPoint(metric.angle, value);
+                                    return (
+                                        <circle
+                                            key={`${model.id}-${metric.key}`}
+                                            cx={point.x}
+                                            cy={point.y}
+                                            r={isHovered ? 5 : 3}
+                                            fill={model.color}
+                                            className="transition-all duration-300"
+                                        />
+                                    );
+                                })}
+                            </g>
+                        );
+                    })}
+
+                    {/* Axis labels */}
+                    {metrics.map((metric) => {
+                        const point = getPoint(metric.angle, 1.15);
+                        return (
+                            <text
+                                key={metric.label}
+                                x={point.x}
+                                y={point.y}
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="#333"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                            >
+                                {metric.label}
+                            </text>
+                        );
+                    })}
+                </svg>
+            </div>
+
+            {/* Legend */}
+            <div className="flex justify-center flex-wrap gap-4 mt-8">
+                {models.map((model) => {
+                    const isHovered = hoveredModel === model.id;
+                    return (
+                        <div
+                            key={model.id}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${isHovered ? 'bg-gray-100 scale-105' : 'hover:bg-gray-50'
+                                }`}
+                            onMouseEnter={() => setHoveredModel(model.id)}
+                            onMouseLeave={() => setHoveredModel(null)}
+                        >
+                            <div
+                                className="w-4 h-4 rounded"
+                                style={{ background: model.color }}
+                            />
+                            <span className="text-sm font-medium text-[#666]">{model.name}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 // Grouped Bar Chart Component (Histogram-style)
 function GroupedBarChart({ models, metrics, title, icon: Icon }: {
     models: Model[];
@@ -286,11 +460,13 @@ export default function ModelComparison() {
     const pathname = usePathname();
     const [selectedModels, setSelectedModels] = useState<string[]>(models.map(m => m.id));
     const [activeView, setActiveView] = useState<"metrics" | "details">("metrics");
+    const [vizType, setVizType] = useState<"bar" | "radar">("bar");
 
     const navItems = [
         { name: "Home", href: "/" },
         { name: "Dashboard", href: "/dashboard" },
         { name: "Patient DR", href: "/patient-dr" },
+        // { name: "Disease - Drug", href: "/disease-drug" },
         { name: "Model Comparison", href: "/model-compare" },
     ];
 
@@ -366,7 +542,7 @@ export default function ModelComparison() {
                 <div className="mb-8">
                     <h3 className="text-lg font-semibold text-[#1a1a1a] flex items-center gap-2 mb-5">
                         <TbBrain className="w-5 h-5 text-[#427466]" />
-                        Available Models
+                         Models
                     </h3>
                     <div className="grid grid-cols-5 gap-5">
                         {models.map((model, index) => (
@@ -422,7 +598,7 @@ export default function ModelComparison() {
                                         <button
                                             key={model.id}
                                             onClick={() => toggleModelSelection(model.id)}
-                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${isSelected
+                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-300 ${isSelected
                                                 ? 'bg-gradient-to-r shadow-md scale-100'
                                                 : 'bg-[#f5f5f5] text-[#666] hover:bg-[#e5e5e5]'
                                                 }`}
@@ -444,61 +620,60 @@ export default function ModelComparison() {
                             </div>
                         </div>
 
-                        {/* Dual Grouped Charts */}
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Recall Graph */}
-                            <GroupedBarChart
-                                models={filteredModels}
-                                metrics={recallMetrics}
-                                title="Recall Metrics"
-                                icon={TbChartBar}
-                            />
-
-                            {/* Precision Graph */}
-                            <GroupedBarChart
-                                models={filteredModels}
-                                metrics={precisionMetrics}
-                                title="Precision Metrics"
-                                icon={TbTargetArrow}
-                            />
+                        {/* Visualization Type Toggle */}
+                        <div className="flex items-center justify-center gap-4 mb-8">
+                            <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+                                <button
+                                    onClick={() => setVizType('bar')}
+                                    className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'bar'
+                                            ? 'bg-white text-[#427466] shadow-md'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    <TbChartBar className="w-4 h-4" />
+                                    Bar Charts
+                                </button>
+                                <button
+                                    onClick={() => setVizType('radar')}
+                                    className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'radar'
+                                            ? 'bg-white text-[#427466] shadow-md'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    <TbRadar className="w-4 h-4" />
+                                    Radar Chart
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                )}
 
-                {activeView === "details" && (
-                    <div className="animate-fade-in">
-                        <div className="grid grid-cols-1 gap-4">
-                            {models.map((model, index) => {
-                                const Icon = model.icon;
-                                return (
-                                    <div
-                                        key={model.id}
-                                        className="bg-white rounded-2xl border border-[#e5e5e5] p-6 hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all duration-300 animate-slide-up"
-                                        style={{ animationDelay: `${index * 100}ms` }}
-                                    >
-                                        <div className="flex items-start gap-4">
-                                            <div
-                                                className={`p-3 rounded-xl bg-gradient-to-br ${model.gradient} shadow-lg`}
-                                                style={{ boxShadow: `0 6px 20px ${model.color}40` }}
-                                            >
-                                                <Icon className="w-6 h-6 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="text-xl font-bold text-[#1a1a1a] mb-1">{model.name}</h3>
-                                                <p className="text-sm text-[#888] font-medium mb-3">{model.fullName}</p>
-                                                <p className="text-base text-[#666] leading-relaxed">{model.description}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        {/* Conditional Rendering: Bar Charts or Radar Chart */}
+                        {vizType === 'bar' ? (
+                            <div className="grid grid-cols-2 gap-6">
+                                {/* Recall Graph */}
+                                <GroupedBarChart
+                                    models={filteredModels}
+                                    metrics={recallMetrics}
+                                    title="Recall Metrics"
+                                    icon={TbChartBar}
+                                />
+
+                                {/* Precision Graph */}
+                                <GroupedBarChart
+                                    models={filteredModels}
+                                    metrics={precisionMetrics}
+                                    title="Precision Metrics"
+                                    icon={TbTargetArrow}
+                                />
+                            </div>
+                        ) : (
+                            <RadarChart models={filteredModels} />
+                        )}
                     </div>
                 )}
             </main>
 
             {/* CSS Animations */}
-            <style jsx global>{`
+            < style jsx global > {`
                 /* Flip Card Styles */
                 .flip-card {
                     background-color: transparent;
@@ -586,7 +761,7 @@ export default function ModelComparison() {
                 .animate-shimmer {
                     animation: shimmer 2s infinite;
                 }
-            `}</style>
-        </div>
+            `}</style >
+        </div >
     );
 }

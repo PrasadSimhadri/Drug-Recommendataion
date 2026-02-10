@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar } from "react-icons/tb";
+import { TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork } from "react-icons/tb";
 
 export default function DiseaseDrug() {
     const pathname = usePathname();

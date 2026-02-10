@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { TbGraph } from "react-icons/tb";
+import { TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork, TbGraph } from "react-icons/tb";
 
 export default function Home() {
   const pathname = usePathname();
@@ -37,18 +37,22 @@ export default function Home() {
 
         {/* Navigation */}
         <nav className="flex items-center gap-4 pr-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
                   ? "bg-[#427466] text-white"
                   : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
-                }`}
-            >
-              {item.name}
-            </Link>
-          ))}
+                  }`}
+              >
+                {Icon && <Icon className="w-4 h-4" />}
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
       </header>
 
