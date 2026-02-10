@@ -707,40 +707,34 @@ export default function PatientDR() {
 
                             {showDiagnoses && (
                                 <div className="px-5 pb-5 border-t border-[#e5e5e5]">
-                                    <div className="grid grid-cols-2 gap-3 mt-4">
+                                    <div className="grid grid-cols-3 gap-2.5 mt-4">
                                         {diagnoses.map((diagnosis, index) => (
                                             <div
                                                 key={`${diagnosis.icd_code}-${index}`}
-                                                className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-[#427466]/30 transition-colors"
+                                                className="p-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:border-[#427466]/40 transition-all"
                                             >
-                                                <div className="flex items-start gap-2">
-                                                    <TbFileText className="w-4 h-4 text-[#427466] mt-0.5 flex-shrink-0" />
-                                                    <div className="flex-1 min-w-0">
-                                                        {/* Diagnosis Name */}
-                                                        {diagnosisNames[diagnosis.cui] && (
-                                                            <div className="mb-2">
-                                                                <span className="text-sm font-semibold text-[#1a1a1a] line-clamp-2">
-                                                                    {diagnosisNames[diagnosis.cui]}
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                {/* Diagnosis Name */}
+                                                <div className="mb-2">
+                                                    <span className="text-xs font-bold text-[#1a1a1a] line-clamp-2 leading-tight">
+                                                        {diagnosisNames[diagnosis.cui]}
+                                                    </span>
+                                                </div>
 
-                                                        {/* ICD Code */}
-                                                        <div className="flex items-center gap-2 mb-1.5">
-                                                            <span className="text-xs font-semibold text-[#666]">ICD-{diagnosis.icd_version}</span>
-                                                            <span className="text-xs font-mono font-bold text-[#427466] bg-white px-1.5 py-0.5 rounded border border-gray-200">
-                                                                {diagnosis.icd_code}
-                                                            </span>
-                                                        </div>
-
-                                                        {/* CUI */}
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-xs text-[#888]">CUI:</span>
-                                                            <span className="text-xs font-mono text-[#555] bg-white px-1.5 py-0.5 rounded border border-gray-200">
-                                                                {diagnosis.cui}
-                                                            </span>
-                                                        </div>
+                                                {/* Codes Row */}
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    {/* ICD Badge */}
+                                                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#427466]/10 rounded">
+                                                        <span className="text-[10px] font-semibold text-[#427466]">
+                                                            ICD-{diagnosis.icd_version}:{diagnosis.icd_code}
+                                                        </span>
                                                     </div>
+                                                </div>
+
+                                                {/* CUI */}
+                                                <div className="mt-1.5">
+                                                    <span className="text-[10px] font-mono text-[#666]">
+                                                        {diagnosis.cui}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))}
