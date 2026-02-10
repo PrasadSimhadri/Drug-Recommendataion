@@ -487,6 +487,7 @@ export default function PatientDR() {
     const [recommendations, setRecommendations] = useState<DrugRecommendation[]>([]);
     const [drugNames, setDrugNames] = useState<Record<string, string>>({});
     const [diagnoses, setDiagnoses] = useState<DiagnosisItem[]>([]);
+    const [diagnosisNames, setDiagnosisNames] = useState<Record<string, string>>({});
     const [showDiagnoses, setShowDiagnoses] = useState(false);
     const [zoom, setZoom] = useState(1);
 
@@ -526,15 +527,43 @@ export default function PatientDR() {
 
             // Fetch diagnoses
             try {
-                const diagResponse = await fetch(`${RECOMMEND_API}/api/diagnoses/${patientId}?top_k=10`);
+                // Request more diagnoses since some may not have CUI names
+                const diagResponse = await fetch(`${RECOMMEND_API}/api/diagnoses/${patientId}?top_k=20`);
                 if (diagResponse.ok) {
                     const diagData = await diagResponse.json();
-                    setDiagnoses(diagData.diagnoses || []);
+
+                    // Fetch names for diagnoses and filter out ones without names
+                    const diagNames: Record<string, string> = {};
+                    const validDiagnoses: DiagnosisItem[] = [];
+
+                    for (const diag of diagData.diagnoses || []) {
+                        // Stop if we already have 10 valid diagnoses
+                        if (validDiagnoses.length >= 10) break;
+
+                        try {
+                            const res = await fetch(`${CUI_API}/api/cui/${diag.cui}`);
+                            if (res.ok) {
+                                const cuiData = await res.json();
+                                if (cuiData.found && cuiData.data && cuiData.data.name) {
+                                    // Only keep diagnoses with valid names
+                                    diagNames[diag.cui] = cuiData.data.name;
+                                    validDiagnoses.push(diag);
+                                }
+                            }
+                        } catch {
+                            // Skip diagnoses that fail to fetch
+                            continue;
+                        }
+                    }
+
+                    setDiagnoses(validDiagnoses);
+                    setDiagnosisNames(diagNames);
                 }
             } catch (diagError) {
                 console.error("Failed to fetch diagnoses:", diagError);
                 // Don't fail the whole request if diagnoses fail
                 setDiagnoses([]);
+                setDiagnosisNames({});
             }
 
             // Fetch drug names for the graph
@@ -684,16 +713,30 @@ export default function PatientDR() {
                                                 key={`${diagnosis.icd_code}-${index}`}
                                                 className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-[#427466]/30 transition-colors"
                                             >
-                                                <div className="flex items-start gap-2 mb-2">
+                                                <div className="flex items-start gap-2">
                                                     <TbFileText className="w-4 h-4 text-[#427466] mt-0.5 flex-shrink-0" />
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-xs font-semibold text-[#333]">ICD-{diagnosis.icd_version}</span>
-                                                            <span className="text-sm font-bold text-[#427466]">{diagnosis.icd_code}</span>
+                                                        {/* Diagnosis Name */}
+                                                        {diagnosisNames[diagnosis.cui] && (
+                                                            <div className="mb-2">
+                                                                <span className="text-sm font-semibold text-[#1a1a1a] line-clamp-2">
+                                                                    {diagnosisNames[diagnosis.cui]}
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* ICD Code */}
+                                                        <div className="flex items-center gap-2 mb-1.5">
+                                                            <span className="text-xs font-semibold text-[#666]">ICD-{diagnosis.icd_version}</span>
+                                                            <span className="text-xs font-mono font-bold text-[#427466] bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                                                                {diagnosis.icd_code}
+                                                            </span>
                                                         </div>
+
+                                                        {/* CUI */}
                                                         <div className="flex items-center gap-1.5">
-                                                            <span className="text-xs text-[#666]">CUI:</span>
-                                                            <span className="text-xs font-mono text-[#333] bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                                                            <span className="text-xs text-[#888]">CUI:</span>
+                                                            <span className="text-xs font-mono text-[#555] bg-white px-1.5 py-0.5 rounded border border-gray-200">
                                                                 {diagnosis.cui}
                                                             </span>
                                                         </div>
