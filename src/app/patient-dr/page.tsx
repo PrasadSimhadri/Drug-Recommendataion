@@ -6,7 +6,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
     TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbLoader2,
     TbChevronDown, TbChevronUp, TbPill, TbTag, TbCode, TbDatabase,
-    TbSearch, TbUser, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork
+    TbSearch, TbUser, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork,
+    TbStethoscope, TbFileText
 } from "react-icons/tb";
 
 // API base URLs
@@ -27,6 +28,13 @@ interface DrugDetails {
     sources: string;
     codes: string;
     synonyms: string;
+}
+
+interface DiagnosisItem {
+    icd_code: string;
+    icd_version: number;
+    cui: string;
+    hadm_id: string;
 }
 
 interface NodePosition {
@@ -478,6 +486,8 @@ export default function PatientDR() {
     const [error, setError] = useState<string | null>(null);
     const [recommendations, setRecommendations] = useState<DrugRecommendation[]>([]);
     const [drugNames, setDrugNames] = useState<Record<string, string>>({});
+    const [diagnoses, setDiagnoses] = useState<DiagnosisItem[]>([]);
+    const [showDiagnoses, setShowDiagnoses] = useState(false);
     const [zoom, setZoom] = useState(1);
 
     const navItems = [
@@ -498,6 +508,7 @@ export default function PatientDR() {
         setError(null);
 
         try {
+            // Fetch recommendations
             const response = await fetch(`${RECOMMEND_API}/api/recommend`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -512,6 +523,19 @@ export default function PatientDR() {
             const data = await response.json();
             setRecommendations(data.recommendations);
             setSearchedPatientId(patientId);
+
+            // Fetch diagnoses
+            try {
+                const diagResponse = await fetch(`${RECOMMEND_API}/api/diagnoses/${patientId}?top_k=10`);
+                if (diagResponse.ok) {
+                    const diagData = await diagResponse.json();
+                    setDiagnoses(diagData.diagnoses || []);
+                }
+            } catch (diagError) {
+                console.error("Failed to fetch diagnoses:", diagError);
+                // Don't fail the whole request if diagnoses fail
+                setDiagnoses([]);
+            }
 
             // Fetch drug names for the graph
             const names: Record<string, string> = {};
@@ -532,6 +556,7 @@ export default function PatientDR() {
         } catch (err) {
             setError(err instanceof Error ? err.message : "An error occurred");
             setRecommendations([]);
+            setDiagnoses([]);
         } finally {
             setLoading(false);
         }
@@ -625,6 +650,60 @@ export default function PatientDR() {
                     {error && (
                         <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                             {error}
+                        </div>
+                    )}
+
+                    {/* Diagnosis Section - Expandable */}
+                    {diagnoses.length > 0 && (
+                        <div className="mb-5 bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden">
+                            <button
+                                onClick={() => setShowDiagnoses(!showDiagnoses)}
+                                className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <TbStethoscope className="w-5 h-5 text-[#427466]" />
+                                    <h3 className="text-sm font-semibold text-[#333]">
+                                        Patient Diagnoses
+                                    </h3>
+                                    <span className="px-2 py-0.5 bg-[#427466]/10 text-[#427466] text-xs font-medium rounded-full">
+                                        {diagnoses.length}
+                                    </span>
+                                </div>
+                                {showDiagnoses ? (
+                                    <TbChevronUp className="w-5 h-5 text-[#666]" />
+                                ) : (
+                                    <TbChevronDown className="w-5 h-5 text-[#666]" />
+                                )}
+                            </button>
+
+                            {showDiagnoses && (
+                                <div className="px-5 pb-5 border-t border-[#e5e5e5]">
+                                    <div className="grid grid-cols-2 gap-3 mt-4">
+                                        {diagnoses.map((diagnosis, index) => (
+                                            <div
+                                                key={`${diagnosis.icd_code}-${index}`}
+                                                className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-[#427466]/30 transition-colors"
+                                            >
+                                                <div className="flex items-start gap-2 mb-2">
+                                                    <TbFileText className="w-4 h-4 text-[#427466] mt-0.5 flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-xs font-semibold text-[#333]">ICD-{diagnosis.icd_version}</span>
+                                                            <span className="text-sm font-bold text-[#427466]">{diagnosis.icd_code}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-xs text-[#666]">CUI:</span>
+                                                            <span className="text-xs font-mono text-[#333] bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                                                                {diagnosis.cui}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

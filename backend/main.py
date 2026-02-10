@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import uvicorn
+import pandas as pd
+from pathlib import Path
 
 app = FastAPI(
     title="Drug Recommendation API",
@@ -42,8 +44,21 @@ class RecommendResponse(BaseModel):
     recommendations: List[DrugRecommendation]
 
 
-# Lazy load recommender
+class DiagnosisItem(BaseModel):
+    icd_code: str
+    icd_version: int
+    cui: str
+    hadm_id: str
+
+
+class DiagnosesResponse(BaseModel):
+    patient_id: str
+    diagnoses: List[DiagnosisItem]
+
+
+# Lazy load recommender and diagnosis data
 _recommender = None
+_diagnosis_df = None
 
 def get_recommender():
     global _recommender
@@ -51,6 +66,22 @@ def get_recommender():
         from inference import get_recommender as load_recommender
         _recommender = load_recommender()
     return _recommender
+
+
+def get_diagnosis_data():
+    global _diagnosis_df
+    if _diagnosis_df is None:
+        try:
+            csv_path = Path(r"C:\Users\saisi\OneDrive\Documents\Desktop\mimic_diagnoses_mapped.csv")
+            if not csv_path.exists():
+                print(f"Warning: Diagnosis CSV not found at {csv_path}")
+                return pd.DataFrame()  # Return empty DataFrame instead of raising error
+            _diagnosis_df = pd.read_csv(csv_path)
+            print(f"Loaded {len(_diagnosis_df)} diagnosis records")
+        except Exception as e:
+            print(f"Error loading diagnosis CSV: {e}")
+            _diagnosis_df = pd.DataFrame()  # Return empty DataFrame on error
+    return _diagnosis_df
 
 
 @app.get("/api/health")
@@ -89,6 +120,51 @@ async def list_patients():
         recommender = get_recommender()
         patient_ids = list(recommender.patient_to_idx.keys())[:20]
         return {"patients": patient_ids, "total": len(recommender.patient_to_idx)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/diagnoses/{patient_id}", response_model=DiagnosesResponse)
+async def get_patient_diagnoses(patient_id: str, top_k: Optional[int] = 10):
+    """
+    Get diagnoses for a patient from MIMIC dataset.
+    Returns unique ICD codes (one CUI per ICD code).
+    """
+    try:
+        df = get_diagnosis_data()
+        
+        # Filter by patient ID
+        patient_data = df[df['subject_id'] == int(patient_id)]
+        
+        if patient_data.empty:
+            return DiagnosesResponse(
+                patient_id=patient_id,
+                diagnoses=[]
+            )
+        
+        # Deduplicate: keep first CUI per unique ICD code
+        unique_diagnoses = patient_data.drop_duplicates(subset=['icd_code'], keep='first')
+        
+        # Limit to top_k
+        unique_diagnoses = unique_diagnoses.head(top_k)
+        
+        # Convert to response format
+        diagnoses = [
+            DiagnosisItem(
+                icd_code=str(row['icd_code']),
+                icd_version=int(row['icd_version']),
+                cui=str(row['cui']),
+                hadm_id=str(row['hadm_id'])
+            )
+            for _, row in unique_diagnoses.iterrows()
+        ]
+        
+        return DiagnosesResponse(
+            patient_id=patient_id,
+            diagnoses=diagnoses
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid patient ID format")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
