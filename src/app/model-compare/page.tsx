@@ -212,66 +212,34 @@ function GroupedBarChart({ models, metrics, title, icon: Icon }: {
 
                         {/* Grouped Bars */}
                         <div className="absolute inset-0 flex items-end justify-around gap-4 px-2 h-full">
-                            {models.map((model, modelIndex) => {
-
-                                // console.log("🧠 Rendering model:", model.name, model.metrics);
-
+                            {metrics.map((metric, metricIndex) => {
                                 return (
                                     <div
-                                        key={model.id}
+                                        key={metric}
                                         className="flex-1 flex items-end justify-center gap-2 h-full"
-                                        style={{ maxWidth: '120px' }}
+                                        style={{ maxWidth: '160px' }}
                                     >
-                                        {/* Group of bars for this model */}
-                                        {metrics.map((metric, metricIndex) => {
+                                        {models.map((model, modelIndex) => {
                                             const value = model.metrics[metric as keyof typeof model.metrics];
                                             const heightPercentage = value * 100;
-
-                                            // console.log("📈 Bar data", {
-                                            //     chart: title,
-                                            //     model: model.name,
-                                            //     metric,
-                                            //     rawValue: value,
-                                            //     heightPercentage
-                                            // });
-
                                             const barColor = model.color;
-                                            const opacity = metricIndex === 0 ? 'FF' : 'B3'; // FF=100%, B3=70%
 
                                             const barStyle = {
                                                 height: isVisible ? `${heightPercentage}%` : '0%',
-                                                background: `linear-gradient(180deg, ${barColor}${opacity}, ${barColor}dd)`,
+                                                background: `linear-gradient(180deg, ${barColor}, ${barColor}dd)`,
                                                 boxShadow: `0 2px 8px ${barColor}40`,
-                                                transitionDelay: `${modelIndex * 100 + metricIndex * 50}ms`,
+                                                transitionDelay: `${metricIndex * 150 + modelIndex * 80}ms`,
                                             };
-
-                                            // console.log("🎨 Bar style", {
-                                            //     chart: title,
-                                            //     model: model.name,
-                                            //     metric,
-                                            //     barStyle
-                                            // });
 
                                             return (
                                                 <div
-                                                    key={metric}
-                                                    className="flex-1 relative group cursor-pointer h-full"
+                                                    key={model.id}
+                                                    className="flex-1 relative h-full"
                                                 >
-                                                    {/* Value label on hover */}
-                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute -top-10 left-1/2 transform -translate-x-1/2 text-xs font-bold whitespace-nowrap bg-white px-2 py-1 rounded shadow-lg z-20"
-                                                        style={{ color: barColor }}
-                                                    >
-                                                        {metric.replace('@', '@')}: {(value * 100).toFixed(1)}%
-                                                    </div>
-
-                                                    {/* Bar */}
                                                     <div
-                                                        className="w-full rounded-t-md transition-all duration-1000 ease-out absolute bottom-0 overflow-hidden group-hover:scale-105 group-hover:shadow-lg"
+                                                        className="absolute bottom-0 w-full rounded-t-md transition-all duration-1000"
                                                         style={barStyle}
-                                                    >
-
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent" />
-                                                    </div>
+                                                    />
                                                 </div>
                                             );
                                         })}
@@ -283,37 +251,32 @@ function GroupedBarChart({ models, metrics, title, icon: Icon }: {
 
                     {/* X-axis labels (Model names with icons) - OUTSIDE chart area */}
                     <div className="flex justify-around gap-4 mt-6">
-                        {models.map(model => {
-                            const ModelIcon = model.icon;
-                            return (
-                                <div key={model.id} className="flex-1 flex flex-col items-center" style={{ maxWidth: '120px' }}>
-                                    <div
-                                        className={`p-1.5 rounded-lg bg-gradient-to-br ${model.gradient} shadow-sm mb-1`}
-                                        style={{ boxShadow: `0 2px 8px ${model.color}40` }}
-                                    >
-                                        <ModelIcon className="w-4 h-4 text-white" />
-                                    </div>
-                                    <span className="text-xs font-medium text-[#333] text-center">{model.name}</span>
-                                </div>
-                            );
-                        })}
+                        {metrics.map(metric => (
+                            <div
+                                key={metric}
+                                className="flex-1 text-center text-sm font-semibold text-[#333]"
+                                style={{ maxWidth: '160px' }}
+                            >
+                                {metric.toUpperCase()}
+                            </div>
+                        ))}
                     </div>
                 </div>
 
                 {/* Legend */}
-                {/* <div className="flex justify-center gap-6 mt-6">
-                    {metrics.map((metric, index) => (
-                        <div key={metric} className="flex items-center gap-2">
+                <div className="flex justify-center flex-wrap gap-4 mt-6">
+                    {models.map(model => (
+                        <div key={model.id} className="flex items-center gap-2">
                             <div
                                 className="w-4 h-4 rounded"
-                                style={{ background: metricColors[index] }}
+                                style={{ background: model.color }}
                             />
                             <span className="text-xs font-medium text-[#666]">
-                                {metric.replace('@', ' @')}
+                                {model.name}
                             </span>
                         </div>
                     ))}
-                </div> */}
+                </div>
             </div>
         </div>
     );
