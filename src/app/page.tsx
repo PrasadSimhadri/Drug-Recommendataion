@@ -8,11 +8,11 @@ export default function Home() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Patient DR", href: "/patient-dr" },
-    // { name: "Disease - Drug", href: "/disease-drug" },
-    { name: "Model Comparison", href: "/model-compare" },
+    { name: "Home", href: "/", icon: TbHome },
+    { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
+    { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
+    // { name: "Disease - Drug", href: "/disease-drug", icon: TbNetwork },
+    { name: "Model Comparison", href: "/model-compare", icon: TbGraph },
   ];
 
   return (

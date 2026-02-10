@@ -463,11 +463,11 @@ export default function ModelComparison() {
     const [vizType, setVizType] = useState<"bar" | "radar">("bar");
 
     const navItems = [
-        { name: "Home", href: "/" },
-        { name: "Dashboard", href: "/dashboard" },
-        { name: "Patient DR", href: "/patient-dr" },
-        // { name: "Disease - Drug", href: "/disease-drug" },
-        { name: "Model Comparison", href: "/model-compare" },
+        { name: "Home", href: "/", icon: TbHome },
+        { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
+        { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
+        // { name: "Disease - Drug", href: "/disease-drug", icon: TbNetwork },
+        { name: "Model Comparison", href: "/model-compare", icon: TbGraph },
     ];
 
     const filteredModels = models.filter(m => selectedModels.includes(m.id));
@@ -499,25 +499,29 @@ export default function ModelComparison() {
 
             {/* Header / Navbar */}
             <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-10">
-                <div className="flex items-center gap-3 pl-6">
+                <Link href="/" className="flex items-center gap-3 pl-6 cursor-pointer">
                     <h1 className="text-xl font-medium text-[#1a1a1a]">
                         <b>Drug Recommendation System</b>
                     </h1>
-                </div>
+                </Link>
 
                 <nav className="flex items-center gap-4 pr-6">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
-                                ? "bg-[#427466] text-white"
-                                : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
-                                }`}
-                        >
-                            {item.name}
-                        </Link>
-                    ))}
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
+                                    ? "bg-[#427466] text-white"
+                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                    }`}
+                            >
+                                {Icon && <Icon className="w-4 h-4" />}
+                                {item.name}
+                            </Link>
+                        );
+                    })}
                 </nav>
             </header>
 
@@ -542,7 +546,7 @@ export default function ModelComparison() {
                 <div className="mb-8">
                     <h3 className="text-lg font-semibold text-[#1a1a1a] flex items-center gap-2 mb-5">
                         <TbBrain className="w-5 h-5 text-[#427466]" />
-                         Models
+                        Models
                     </h3>
                     <div className="grid grid-cols-5 gap-5">
                         {models.map((model, index) => (
@@ -626,8 +630,8 @@ export default function ModelComparison() {
                                 <button
                                     onClick={() => setVizType('bar')}
                                     className={` cursor-pointer flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'bar'
-                                            ? 'bg-white text-[#427466] shadow-md'
-                                            : 'text-gray-500 hover:text-gray-700'
+                                        ? 'bg-white text-[#427466] shadow-md'
+                                        : 'text-gray-500 hover:text-gray-700'
                                         }`}
                                 >
                                     <TbChartBar className="w-4 h-4" />
@@ -636,8 +640,8 @@ export default function ModelComparison() {
                                 <button
                                     onClick={() => setVizType('radar')}
                                     className={` cursor-pointer flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${vizType === 'radar'
-                                            ? 'bg-white text-[#427466] shadow-md'
-                                            : 'text-gray-500 hover:text-gray-700'
+                                        ? 'bg-white text-[#427466] shadow-md'
+                                        : 'text-gray-500 hover:text-gray-700'
                                         }`}
                                 >
                                     <TbRadar className="w-4 h-4" />

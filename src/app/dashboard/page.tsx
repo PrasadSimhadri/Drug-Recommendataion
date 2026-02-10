@@ -18,11 +18,11 @@ export default function Dashboard() {
     const [isQuerying, setIsQuerying] = useState(false);
 
     const navItems = [
-        { name: "Home", href: "/" },
-        { name: "Dashboard", href: "/dashboard" },
-        { name: "Patient DR", href: "/patient-dr" },
+        { name: "Home", href: "/", icon: TbHome },
+        { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
+        { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         // { name: "Disease - Drug", href: "/disease-drug" },
-        { name: "Model Comparison", href: "/model-compare" },
+        { name: "Model Comparison", href: "/model-compare", icon: TbNetwork },
     ];
 
     const nodeTypes = ["Patient", "Visit"];
@@ -128,11 +128,11 @@ export default function Dashboard() {
 
             {/* Header / Navbar */}
             <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-10">
-                <div className="flex items-center gap-3 pl-6">
+                <Link href="/" className="flex items-center gap-3 pl-6 cursor-pointer">
                     <h1 className="text-xl font-medium text-[#1a1a1a]">
                         <b>Drug Recommendation System</b>
                     </h1>
-                </div>
+                </Link>
 
                 {/* Navigation */}
                 <nav className="flex items-center gap-4 pr-6">
@@ -174,7 +174,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Graph Controls - Full Width on Top */}
-                    <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 mb-5">
+                    <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 mb-5 animate-fade-in">
                         <h3 className="text-sm font-semibold text-[#333] mb-4 flex items-center gap-2">
                             <TbArrowsMaximize className="w-4 h-4 text-[#427466]" />
                             Graph Controls
@@ -262,7 +262,7 @@ export default function Dashboard() {
                             <button
                                 onClick={runQuery}
                                 disabled={isQuerying || !inputValue}
-                                className="px-8 py-3 bg-[#427466] text-white rounded-lg font-semibold text-sm hover:bg-[#365f54] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                                className="cursor-pointer px-8 py-3 bg-[#427466] text-white rounded-lg font-semibold text-sm hover:bg-[#365f54] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                             >
                                 {isQuerying ? (
                                     <>
@@ -271,7 +271,7 @@ export default function Dashboard() {
                                     </>
                                 ) : (
                                     <>
-                                        <TbNetwork className="w-4 h-4" />
+                                        <TbNetwork className="w-4 h-4 cursor-pointer" />
                                         Run Query
                                     </>
                                 )}
@@ -280,7 +280,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Two Column Layout - Graph Visualization and Node Details */}
-                    <div className="grid grid-cols-[1fr_420px] gap-5">
+                    <div className="grid grid-cols-[1fr_420px] gap-5 animate-fade-in">
                         {/* Graph Visualization */}
                         <div className="relative">
                             {records.graph ? (
@@ -356,6 +356,33 @@ export default function Dashboard() {
                     </div>
                 </div>
             </main >
+
+            <style jsx>{`
+                @keyframes fade-in {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                .animate-fade-in {
+                    animation: fade-in 0.4s ease-out forwards;
+                }
+                
+                @keyframes fade-in-up {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                .animate-fade-in-up {
+                    animation: fade-in-up 0.6s ease-out forwards;
+                    opacity: 0;
+                }
+            `}</style>
         </div >
     );
 }

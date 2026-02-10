@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar } from "react-icons/tb";
-import { TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork } from "react-icons/tb";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbHome, TbLayoutDashboard, TbUserHeart, TbGraph } from "react-icons/tb";
 
 export default function DiseaseDrug() {
     const pathname = usePathname();
@@ -12,11 +11,11 @@ export default function DiseaseDrug() {
     const [diseaseName, setDiseaseName] = useState("Disease ABCD");
 
     const navItems = [
-        { name: "Home", href: "/" },
-        { name: "Dashboard", href: "/dashboard" },
-        { name: "Patient DR", href: "/patient-dr" },
-        // { name: "Disease - Drug", href: "/disease-drug" },
-        { name: "Model Comparison", href: "/model-compare" },
+        { name: "Home", href: "/", icon: TbHome },
+        { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
+        { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
+        // { name: "Disease - Drug", href: "/disease-drug", icon: TbNetwork },
+        { name: "Model Comparison", href: "/model-compare", icon: TbGraph },
     ];
 
     // Sample associated drugs data (will be fetched from backend later)
@@ -47,26 +46,30 @@ export default function DiseaseDrug() {
 
             {/* Header / Navbar */}
             <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-10">
-                <div className="flex items-center gap-3 pl-6">
+                <Link href="/" className="flex items-center gap-3 pl-6 cursor-pointer">
                     <h1 className="text-xl font-medium text-[#1a1a1a]">
                         <b>Drug Recommendation System</b>
                     </h1>
-                </div>
+                </Link>
 
                 {/* Navigation */}
                 <nav className="flex items-center gap-4 pr-6">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
-                                ? "bg-[#427466] text-white"
-                                : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
-                                }`}
-                        >
-                            {item.name}
-                        </Link>
-                    ))}
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
+                                    ? "bg-[#427466] text-white"
+                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                    }`}
+                            >
+                                {Icon && <Icon className="w-4 h-4" />}
+                                {item.name}
+                            </Link>
+                        );
+                    })}
                 </nav>
             </header>
 

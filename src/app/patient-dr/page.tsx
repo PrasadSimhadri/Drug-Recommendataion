@@ -7,7 +7,7 @@ import {
     TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbLoader2,
     TbChevronDown, TbChevronUp, TbPill, TbTag, TbCode, TbDatabase,
     TbSearch, TbUser, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork,
-    TbStethoscope, TbFileText
+    TbStethoscope, TbFileText, TbChartBar
 } from "react-icons/tb";
 
 // API base URLs
@@ -492,11 +492,11 @@ export default function PatientDR() {
     const [zoom, setZoom] = useState(1);
 
     const navItems = [
-        { name: "Home", href: "/" },
-        { name: "Dashboard", href: "/dashboard" },
-        { name: "Patient DR", href: "/patient-dr" },
+        { name: "Home", href: "/", icon: TbHome },
+        { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
+        { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         // { name: "Disease - Drug", href: "/disease-drug" },
-        { name: "Model Comparison", href: "/model-compare" },
+        { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
 
     const handleSearch = async () => {
@@ -611,11 +611,11 @@ export default function PatientDR() {
 
             {/* Header */}
             <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-10">
-                <div className="flex items-center gap-3 pl-6">
+                <Link href="/" className="flex items-center gap-3 pl-6 cursor-pointer">
                     <h1 className="text-xl font-medium text-[#1a1a1a]">
                         <b>Drug Recommendation System</b>
                     </h1>
-                </div>
+                </Link>
                 <nav className="flex items-center gap-4 pr-6">
                     {navItems.map((item) => {
                         const Icon = item.icon;
@@ -654,7 +654,7 @@ export default function PatientDR() {
                     </div>
 
                     {/* Search Section with Floating Label */}
-                    <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 mb-5 inline-flex items-center gap-4">
+                    <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 mb-5 inline-flex items-center gap-4 animate-fade-in">
                         <FloatingInput
                             value={patientId}
                             onChange={setPatientId}
@@ -665,7 +665,7 @@ export default function PatientDR() {
                         <button
                             onClick={handleSearch}
                             disabled={loading}
-                            className="px-6 py-3 bg-[#427466] text-white rounded-lg text-sm font-medium hover:bg-[#365f54] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="cursor-pointer px-6 py-3 bg-[#427466] text-white rounded-lg text-sm font-medium hover:bg-[#365f54] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             {loading ? (
                                 <TbLoader2 className="w-5 h-5 animate-spin" />
@@ -684,7 +684,7 @@ export default function PatientDR() {
 
                     {/* Diagnosis Section - Expandable */}
                     {diagnoses.length > 0 && (
-                        <div className="mb-5 bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden">
+                        <div className="mb-5 bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden animate-fade-in">
                             <button
                                 onClick={() => setShowDiagnoses(!showDiagnoses)}
                                 className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -747,7 +747,7 @@ export default function PatientDR() {
                     {/* Two Column Layout */}
                     <div className="grid grid-cols-[1fr_450px] gap-5">
                         {/* Left Panel - Network */}
-                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 relative overflow-hidden h-[520px]">
+                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 relative overflow-hidden h-[520px] animate-fade-in">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-sm font-semibold text-[#333] flex items-center gap-2">
                                     <TbNetwork className="w-4 h-4 text-[#427466]" />
@@ -759,9 +759,6 @@ export default function PatientDR() {
                                     </button>
                                     <button onClick={handleZoomOut} className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">
                                         <TbZoomOut className="w-5 h-5 text-[#666]" />
-                                    </button>
-                                    <button onClick={handleZoomReset} className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">
-                                        <TbArrowsMaximize className="w-5 h-5 text-[#666]" />
                                     </button>
                                 </div>
                             </div>
@@ -838,6 +835,31 @@ export default function PatientDR() {
                 }
                 .animate-fadeIn {
                     animation: fadeIn 0.3s ease-out;
+                }
+                
+                @keyframes fade-in {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                .animate-fade-in {
+                    animation: fade-in 0.4s ease-out forwards;
+                }
+                
+                @keyframes fade-in-up {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                .animate-fade-in-up {
+                    animation: fade-in-up 0.6s ease-out forwards;
+                    opacity: 0;
                 }
             `}</style>
         </div>
