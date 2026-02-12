@@ -493,9 +493,9 @@ export default function PatientDR() {
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
+        { name: "UMLS Graph", href: "/umls-graph", icon: TbNetwork },
         { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
-        // { name: "Disease - Drug", href: "/disease-drug" },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
 
