@@ -345,7 +345,7 @@ function GroupedBarChart({ models, metrics, title, icon: Icon }: {
         const timer = setTimeout(() => {
             // console.log("isVisible set to TRUE for chart:", title);
             setIsVisible(true);
-        }, 300);
+        }, 100);
 
         return () => clearTimeout(timer);
     }, [title]);
@@ -477,7 +477,7 @@ export default function ModelComparison() {
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
-        { name: "Model Comparison", href: "/model-compare", icon: TbGraph },
+        { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
 
     const graphSubItems = [
@@ -651,10 +651,15 @@ export default function ModelComparison() {
                 {activeView === "metrics" && (
                     <div className="animate-fade-in">
                         {/* Model Selection */}
-                        <div className=" p-5 mb-6 ">
+                        <div className="p-5 mb-6">
                             <h4 className="text-sm font-semibold text-[#333] mb-4 flex items-center gap-2">
-                                <TbTargetArrow className="w-4 h-4 text-[#427466]" />
+                                <div className="p-1 rounded-md bg-[#427466]/10">
+                                    <TbTargetArrow className="w-4 h-4 text-[#427466]" />
+                                </div>
                                 Select Models to Compare
+                                <span className="ml-auto text-[10px] text-[#999] font-normal uppercase tracking-widest">
+                                    {selectedModels.length} of {models.length} selected
+                                </span>
                             </h4>
                             <div className="flex gap-3">
                                 {models.map((model) => {
@@ -664,22 +669,41 @@ export default function ModelComparison() {
                                         <button
                                             key={model.id}
                                             onClick={() => toggleModelSelection(model.id)}
-                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-300 ${isSelected
-                                                ? 'bg-gradient-to-r shadow-md scale-100'
-                                                : 'bg-[#f5f5f5] text-[#666] hover:bg-[#e5e5e5]'
+                                            className={`relative flex items-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-300 border-2 ${isSelected
+                                                ? 'scale-[1.02] -translate-y-0.5'
+                                                : 'border-transparent bg-gray-100/80 text-[#888] hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-md'
                                                 }`}
-                                            style={{
-                                                background: isSelected ? `linear-gradient(135deg, ${model.color}20, ${model.color}10)` : '#ffffff',
-                                                borderColor: isSelected ? model.color : '#125508ff',
-                                                borderWidth: isSelected ? '1px' : undefined,
-                                                color: isSelected ? model.color : undefined
-                                            }}
+                                            style={isSelected ? {
+                                                background: `linear-gradient(135deg, ${model.color}18, ${model.color}08)`,
+                                                borderColor: model.color,
+                                                color: model.color,
+                                                boxShadow: `0 8px 24px ${model.color}25, 0 2px 8px ${model.color}15`,
+                                            } : { background: `linear-gradient(135deg, ${model.color}18, ${model.color}08)` }}
                                         >
-                                            <div className={`p-1.5 rounded-lg bg-gradient-to-br ${model.gradient}`}>
+                                            {/* Icon badge */}
+                                            <div
+                                                className={`p-1.5 rounded-lg transition-all duration-300 ${isSelected ? '' : 'opacity-50 grayscale'}`}
+                                                style={{ background: `linear-gradient(135deg, ${model.color}, ${model.color}cc)` }}
+                                            >
                                                 <Icon className="w-3.5 h-3.5 text-white" />
                                             </div>
                                             {model.name}
-                                            {isSelected && <TbCheck className="w-4 h-4" />}
+                                            {/* Checkmark badge */}
+                                            <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-300 ${isSelected
+                                                ? 'scale-100 opacity-100'
+                                                : 'scale-0 opacity-0 w-0'
+                                                }`}
+                                                style={isSelected ? { background: model.color } : undefined}
+                                            >
+                                                <TbCheck className="w-3 h-3 text-white" />
+                                            </div>
+                                            {/* Active glow ring */}
+                                            {isSelected && (
+                                                <div
+                                                    className="absolute inset-0 rounded-xl opacity-20 pointer-events-none"
+                                                    style={{ boxShadow: `inset 0 0 20px ${model.color}30` }}
+                                                />
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -735,8 +759,9 @@ export default function ModelComparison() {
                             <RadarChart models={filteredModels} />
                         )}
                     </div>
-                )}
-            </main>
+                )
+                }
+            </main >
 
             {/* CSS Animations */}
             < style jsx global > {`

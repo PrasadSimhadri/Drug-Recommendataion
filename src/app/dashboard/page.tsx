@@ -39,7 +39,7 @@ export default function Dashboard() {
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
-        { name: "Model Comparison", href: "/model-compare", icon: TbNetwork },
+        { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
 
     const graphSubItems = [
@@ -378,7 +378,7 @@ export default function Dashboard() {
                                 <button
                                     onClick={runQuery}
                                     disabled={isQuerying || !inputValue}
-                                    className="cursor-pointer px-8 py-3 bg-gradient-to-r from-[#427466] to-[#2d5a4e] text-white rounded-xl font-semibold text-sm disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2 hover:shadow-[0_8px_24px_rgba(66,116,102,0.35)] hover:scale-[1.02] active:scale-[0.98]"
+                                    className="cursor-pointer px-8 py-3 bg-[#427466] text-white rounded-xl font-semibold text-sm disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2 hover:bg-[#365f54] active:scale-[0.98]"
                                 >
                                     {isQuerying ? (
                                         <>

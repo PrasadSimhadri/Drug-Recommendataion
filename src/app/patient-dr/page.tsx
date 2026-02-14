@@ -779,7 +779,7 @@ export default function PatientDR() {
                             <button
                                 onClick={handleSearch}
                                 disabled={loading}
-                                className="cursor-pointer px-7 py-3 bg-gradient-to-r from-[#427466] to-[#2d5a4e] text-white rounded-xl text-sm font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 hover:shadow-[0_8px_24px_rgba(66,116,102,0.35)] hover:scale-[1.02] active:scale-[0.98]"
+                                className="cursor-pointer px-7 py-3 bg-gradient-to-r from-[#427466] to-[#2d5a4e] text-white rounded-xl text-sm font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2  hover:bg-[#365f54]  active:scale-[0.98]"
                             >
                                 {loading ? (
                                     <TbLoader2 className="w-5 h-5 animate-spin" />

@@ -20,6 +20,7 @@ import {
     TbChevronLeft,
     TbChevronRight,
     TbChevronDown,
+    TbChartBar,
 } from "react-icons/tb";
 import { Network } from "vis-network";
 
@@ -53,7 +54,7 @@ export default function UMLSGraphPage() {
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
-        { name: "Model Comparison", href: "/model-compare", icon: TbGraph },
+        { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
 
     const graphSubItems = [
