@@ -13,49 +13,49 @@ export const queries = {
 
     // PATIENT QUERIES
     PATIENT_DRUGS: {
-        cypher: `
+        cypher: (limit) => `
         MATCH (p:Patient {id:$id})-[r:PRESCRIBED]->(d:Drug)
         WITH p, d, collect(r)[0] AS rel
-        RETURN p, rel, d LIMIT 10
+        RETURN p, rel, d${limit ? ` LIMIT ${limit}` : ''}
         `,
         param: "id"
     },
 
     PATIENT_DIAGNOSES: {
-        cypher: `
+        cypher: (limit) => `
         MATCH (p:Patient {id:$id})-[r:DIAGNOSED_AS]->(d:Diagnosis)
         WITH p, d, collect(r)[0] AS rel
-        RETURN p, rel, d LIMIT 10
+        RETURN p, rel, d${limit ? ` LIMIT ${limit}` : ''}
         `,
         param: "id"
     },
 
     PATIENT_ADMISSIONS: {
-        cypher: `
+        cypher: (limit) => `
         MATCH (p:Patient {id:$id})-[r:ADMITTED]->(e:Encounter)
         WITH p, e, collect(r)[0] AS rel
-        RETURN p, rel, e
+        RETURN p, rel, e${limit ? ` LIMIT ${limit}` : ''}
         `,
         param: "id"
     },
 
     // VISIT QUERIES
     VISIT_DIAGNOSES: {
-        cypher: `
+        cypher: (limit) => `
     MATCH (e:Encounter {id:$visit})-[r:DIAGNOSED]->(d:Diagnosis)
     WITH e, d, collect(r)[0] AS rel
-    RETURN e, rel, d LIMIT 10
+    RETURN e, rel, d${limit ? ` LIMIT ${limit}` : ''}
   `,
         param: "visit"
     },
 
     VISIT_DRUGS: {
-        cypher: `
+        cypher: (limit) => `
     MATCH (e:Encounter {id:$visit})
       -[:DIAGNOSED]->(:Diagnosis)
       -[r:PRESCRIBED_FOR]->(d:Drug)
       WITH e, d, collect(r)[0] AS rel
-    RETURN DISTINCT e,rel, d LIMIT 10
+    RETURN DISTINCT e,rel, d${limit ? ` LIMIT ${limit}` : ''}
   `,
         param: "visit"
     }

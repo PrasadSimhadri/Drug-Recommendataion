@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork } from "react-icons/tb";
+import { useEffect, useState, useRef } from "react";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork, TbChevronDown, TbGraph } from "react-icons/tb";
 import GraphView from "./components/GraphView";
 
 export default function Dashboard() {
@@ -16,14 +16,33 @@ export default function Dashboard() {
     const [availableIds, setAvailableIds] = useState<string[]>([]);
     const [loadingIds, setLoadingIds] = useState(false);
     const [isQuerying, setIsQuerying] = useState(false);
+    const [resultLimit, setResultLimit] = useState<number>(10);
+    const [graphDropdownOpen, setGraphDropdownOpen] = useState(false);
+    const graphDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (graphDropdownRef.current && !graphDropdownRef.current.contains(event.target as Node)) {
+                setGraphDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
-        { name: "UMLS Graph", href: "/umls-graph", icon: TbNetwork },
-        { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         { name: "Model Comparison", href: "/model-compare", icon: TbNetwork },
     ];
+
+    const graphSubItems = [
+        { name: "Integrated Graph", href: "/dashboard" },
+        { name: "UMLS Graph", href: "/umls-graph" },
+    ];
+
+    const isGraphPage = pathname === "/dashboard" || pathname === "/umls-graph";
 
     const nodeTypes = ["Patient", "Visit"];
 
@@ -101,7 +120,8 @@ export default function Dashboard() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     queryType: getQueryType(),
-                    params
+                    params,
+                    limit: resultLimit || undefined
                 })
             });
 
@@ -127,7 +147,7 @@ export default function Dashboard() {
             />
 
             {/* Header / Navbar */}
-            <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-10">
+            <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-50">
                 <Link href="/" className="flex items-center gap-3 pl-6 cursor-pointer">
                     <h1 className="text-xl font-medium text-[#1a1a1a]">
                         <b>Drug Recommendation System</b>
@@ -136,7 +156,52 @@ export default function Dashboard() {
 
                 {/* Navigation */}
                 <nav className="flex items-center gap-4 pr-6">
-                    {navItems.map((item) => {
+                    {/* Home */}
+                    <Link
+                        href="/"
+                        className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === "/"
+                            ? "bg-[#427466] text-white"
+                            : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                            }`}
+                    >
+                        <TbHome className="w-4 h-4" />
+                        Home
+                    </Link>
+
+                    {/* Graph Visualisation Dropdown */}
+                    <div className="relative" ref={graphDropdownRef}>
+                        <button
+                            onClick={() => setGraphDropdownOpen(!graphDropdownOpen)}
+                            className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${isGraphPage
+                                    ? "bg-[#427466] text-white"
+                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                }`}
+                        >
+                            <TbGraph className="w-4 h-4" />
+                            Graph Visualisation
+                            <TbChevronDown className={`w-3 h-3 transition-transform duration-200 ${graphDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {graphDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-[#e5e5e5] overflow-hidden z-[100] min-w-[180px]">
+                                {graphSubItems.map((sub) => (
+                                    <Link
+                                        key={sub.name}
+                                        href={sub.href}
+                                        onClick={() => setGraphDropdownOpen(false)}
+                                        className={`block px-5 py-3 text-sm font-medium transition-colors ${pathname === sub.href
+                                                ? "bg-[#427466]/10 text-[#427466]"
+                                                : "text-[#333] hover:bg-[#f5f5f5]"
+                                            }`}
+                                    >
+                                        {sub.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Remaining nav items */}
+                    {navItems.filter(item => item.name !== "Home").map((item) => {
                         const Icon = item.icon;
                         return (
                             <Link
@@ -226,6 +291,28 @@ export default function Dashboard() {
                                                 {type}
                                             </option>
                                         ))}
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-[#1a1a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Result Limit Dropdown */}
+                            <div className="flex-1">
+                                <label className="block text-sm text-[#333] mb-2">Result Limit</label>
+                                <div className="relative">
+                                    <select
+                                        value={resultLimit}
+                                        onChange={(e) => setResultLimit(Number(e.target.value))}
+                                        className="w-full px-4 py-3 bg-white text-[#1a1a1a] border border-[#1a1a1a] rounded-lg appearance-none cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-[#427466]"
+                                    >
+                                        <option value={10}>10</option>
+                                        <option value={20}>20</option>
+                                        <option value={50}>50</option>
+                                        <option value={0}>No Limit</option>
                                     </select>
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                                         <svg className="w-4 h-4 text-[#1a1a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

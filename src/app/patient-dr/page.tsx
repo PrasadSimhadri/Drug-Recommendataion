@@ -7,7 +7,7 @@ import {
     TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbLoader2,
     TbChevronDown, TbChevronUp, TbPill, TbTag, TbCode, TbDatabase,
     TbSearch, TbUser, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork,
-    TbStethoscope, TbFileText, TbChartBar
+    TbStethoscope, TbFileText, TbChartBar, TbGraph
 } from "react-icons/tb";
 
 // API base URLs
@@ -490,14 +490,31 @@ export default function PatientDR() {
     const [diagnosisNames, setDiagnosisNames] = useState<Record<string, string>>({});
     const [showDiagnoses, setShowDiagnoses] = useState(false);
     const [zoom, setZoom] = useState(1);
+    const [graphDropdownOpen, setGraphDropdownOpen] = useState(false);
+    const graphDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (graphDropdownRef.current && !graphDropdownRef.current.contains(event.target as Node)) {
+                setGraphDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
-        { name: "UMLS Graph", href: "/umls-graph", icon: TbNetwork },
-        { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
+
+    const graphSubItems = [
+        { name: "Integrated Graph", href: "/dashboard" },
+        { name: "UMLS Graph", href: "/umls-graph" },
+    ];
+
+    const isGraphPage = pathname === "/dashboard" || pathname === "/umls-graph";
 
     const handleSearch = async () => {
         if (!patientId.trim()) {
@@ -610,14 +627,59 @@ export default function PatientDR() {
             />
 
             {/* Header */}
-            <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-10">
+            <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-50">
                 <Link href="/" className="flex items-center gap-3 pl-6 cursor-pointer">
                     <h1 className="text-xl font-medium text-[#1a1a1a]">
                         <b>Drug Recommendation System</b>
                     </h1>
                 </Link>
                 <nav className="flex items-center gap-4 pr-6">
-                    {navItems.map((item) => {
+                    {/* Home */}
+                    <Link
+                        href="/"
+                        className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === "/"
+                            ? "bg-[#427466] text-white"
+                            : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                            }`}
+                    >
+                        <TbHome className="w-4 h-4" />
+                        Home
+                    </Link>
+
+                    {/* Graph Visualisation Dropdown */}
+                    <div className="relative" ref={graphDropdownRef}>
+                        <button
+                            onClick={() => setGraphDropdownOpen(!graphDropdownOpen)}
+                            className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${isGraphPage
+                                    ? "bg-[#427466] text-white"
+                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                }`}
+                        >
+                            <TbGraph className="w-4 h-4" />
+                            Graph Visualisation
+                            <TbChevronDown className={`w-3 h-3 transition-transform duration-200 ${graphDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {graphDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-[#e5e5e5] overflow-hidden z-[100] min-w-[180px]">
+                                {graphSubItems.map((sub) => (
+                                    <Link
+                                        key={sub.name}
+                                        href={sub.href}
+                                        onClick={() => setGraphDropdownOpen(false)}
+                                        className={`block px-5 py-3 text-sm font-medium transition-colors ${pathname === sub.href
+                                                ? "bg-[#427466]/10 text-[#427466]"
+                                                : "text-[#333] hover:bg-[#f5f5f5]"
+                                            }`}
+                                    >
+                                        {sub.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Remaining nav items */}
+                    {navItems.filter(item => item.name !== "Home").map((item) => {
                         const Icon = item.icon;
                         return (
                             <Link

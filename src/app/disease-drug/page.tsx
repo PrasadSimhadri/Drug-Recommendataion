@@ -2,21 +2,38 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbHome, TbLayoutDashboard, TbUserHeart, TbGraph, TbNetwork } from "react-icons/tb";
+import { useState, useRef, useEffect } from "react";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbHome, TbLayoutDashboard, TbUserHeart, TbGraph, TbNetwork, TbChevronDown } from "react-icons/tb";
 
 export default function DiseaseDrug() {
     const pathname = usePathname();
     const [diseaseId, setDiseaseId] = useState("");
     const [diseaseName, setDiseaseName] = useState("Disease ABCD");
+    const [graphDropdownOpen, setGraphDropdownOpen] = useState(false);
+    const graphDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (graphDropdownRef.current && !graphDropdownRef.current.contains(event.target as Node)) {
+                setGraphDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
-        { name: "UMLS Graph", href: "/umls-graph", icon: TbNetwork },
-        { name: "Dashboard", href: "/dashboard", icon: TbLayoutDashboard },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         { name: "Model Comparison", href: "/model-compare", icon: TbGraph },
     ];
+
+    const graphSubItems = [
+        { name: "Integrated Graph", href: "/dashboard" },
+        { name: "UMLS Graph", href: "/umls-graph" },
+    ];
+
+    const isGraphPage = pathname === "/dashboard" || pathname === "/umls-graph";
 
     // Sample associated drugs data (will be fetched from backend later)
     const associatedDrugs = [
@@ -29,7 +46,7 @@ export default function DiseaseDrug() {
 
     const handleSearch = () => {
         // Will be implemented with backend integration
-        console.log("Searching for disease:", diseaseId);
+        // console.log("Searching for disease:", diseaseId);
     };
 
     return (
@@ -45,7 +62,7 @@ export default function DiseaseDrug() {
             />
 
             {/* Header / Navbar */}
-            <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-10">
+            <header className="flex justify-between h-20 px-12 py-5 bg-[#ffffff] shadow-md relative z-50">
                 <Link href="/" className="flex items-center gap-3 pl-6 cursor-pointer">
                     <h1 className="text-xl font-medium text-[#1a1a1a]">
                         <b>Drug Recommendation System</b>
@@ -54,7 +71,52 @@ export default function DiseaseDrug() {
 
                 {/* Navigation */}
                 <nav className="flex items-center gap-4 pr-6">
-                    {navItems.map((item) => {
+                    {/* Home */}
+                    <Link
+                        href="/"
+                        className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === "/"
+                            ? "bg-[#427466] text-white"
+                            : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                            }`}
+                    >
+                        <TbHome className="w-4 h-4" />
+                        Home
+                    </Link>
+
+                    {/* Graph Visualisation Dropdown */}
+                    <div className="relative" ref={graphDropdownRef}>
+                        <button
+                            onClick={() => setGraphDropdownOpen(!graphDropdownOpen)}
+                            className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${isGraphPage
+                                    ? "bg-[#427466] text-white"
+                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                }`}
+                        >
+                            <TbGraph className="w-4 h-4" />
+                            Graph Visualisation
+                            <TbChevronDown className={`w-3 h-3 transition-transform duration-200 ${graphDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {graphDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-[#e5e5e5] overflow-hidden z-[100] min-w-[180px]">
+                                {graphSubItems.map((sub) => (
+                                    <Link
+                                        key={sub.name}
+                                        href={sub.href}
+                                        onClick={() => setGraphDropdownOpen(false)}
+                                        className={`block px-5 py-3 text-sm font-medium transition-colors ${pathname === sub.href
+                                                ? "bg-[#427466]/10 text-[#427466]"
+                                                : "text-[#333] hover:bg-[#f5f5f5]"
+                                            }`}
+                                    >
+                                        {sub.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Remaining nav items */}
+                    {navItems.filter(item => item.name !== "Home").map((item) => {
                         const Icon = item.icon;
                         return (
                             <Link

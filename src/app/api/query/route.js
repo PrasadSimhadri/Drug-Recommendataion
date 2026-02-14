@@ -10,7 +10,7 @@ const driver = neo4j.driver(
 );
 
 export async function POST(req) {
-    const { queryType, params } = await req.json();
+    const { queryType, params, limit } = await req.json();
 
     const session = driver.session();
     const queryDef = queries[queryType];
@@ -25,7 +25,10 @@ export async function POST(req) {
     // Handle queries without parameters (like ALL_PATIENTS, ALL_VISITS)
     const queryParams = queryDef.param ? { [queryDef.param]: params[queryDef.param] } : {};
 
-    const result = await session.run(queryDef.cypher, queryParams);
+    // Support dynamic limit: if cypher is a function, call it with the limit
+    const cypherQuery = typeof queryDef.cypher === 'function' ? queryDef.cypher(limit) : queryDef.cypher;
+
+    const result = await session.run(cypherQuery, queryParams);
     await session.close();
 
     // Special handling for ID list queries
