@@ -29,8 +29,8 @@ export default function DiseaseDrug() {
     ];
 
     const graphSubItems = [
-        { name: "Integrated Graph", href: "/dashboard" },
         { name: "UMLS Graph", href: "/umls-graph" },
+        { name: "Integrated Graph", href: "/dashboard" },
     ];
 
     const isGraphPage = pathname === "/dashboard" || pathname === "/umls-graph";

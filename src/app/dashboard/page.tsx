@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork, TbChevronDown, TbGraph } from "react-icons/tb";
+import {
+    TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard,
+    TbUserHeart, TbNetwork, TbChevronDown, TbGraph, TbChartBar,
+    TbFilter, TbDatabase, TbSearch, TbLoader2, TbClick,
+    TbAdjustments, TbHash
+} from "react-icons/tb";
 import GraphView from "./components/GraphView";
 
 export default function Dashboard() {
@@ -38,8 +43,8 @@ export default function Dashboard() {
     ];
 
     const graphSubItems = [
-        { name: "Integrated Graph", href: "/dashboard" },
         { name: "UMLS Graph", href: "/umls-graph" },
+        { name: "Integrated Graph", href: "/dashboard" },
     ];
 
     const isGraphPage = pathname === "/dashboard" || pathname === "/umls-graph";
@@ -134,8 +139,19 @@ export default function Dashboard() {
         setIsQuerying(false);
     }
 
+    // Node type colors for the details panel
+    const getNodeTypeColor = (group: string) => {
+        switch (group) {
+            case "Patient": return { bg: "from-[#427466] to-[#2d5a4e]", light: "bg-[#427466]/10", text: "text-[#427466]" };
+            case "Drug": return { bg: "from-emerald-500 to-teal-600", light: "bg-emerald-500/10", text: "text-emerald-600" };
+            case "Diagnosis": return { bg: "from-amber-500 to-orange-600", light: "bg-amber-500/10", text: "text-amber-600" };
+            case "Visit": return { bg: "from-sky-500 to-cyan-600", light: "bg-sky-500/10", text: "text-sky-600" };
+            default: return { bg: "from-violet-500 to-purple-600", light: "bg-violet-500/10", text: "text-violet-600" };
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-[#F9F9F9] relative">
+        <div className="min-h-screen bg-[#F9F9F9] relative overflow-hidden">
             {/* Background Image Overlay */}
             <div
                 className="absolute inset-0 z-0 pointer-events-none"
@@ -173,8 +189,8 @@ export default function Dashboard() {
                         <button
                             onClick={() => setGraphDropdownOpen(!graphDropdownOpen)}
                             className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${isGraphPage
-                                    ? "bg-[#427466] text-white"
-                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                ? "bg-[#427466] text-white"
+                                : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
                                 }`}
                         >
                             <TbGraph className="w-4 h-4" />
@@ -189,8 +205,8 @@ export default function Dashboard() {
                                         href={sub.href}
                                         onClick={() => setGraphDropdownOpen(false)}
                                         className={`block px-5 py-3 text-sm font-medium transition-colors ${pathname === sub.href
-                                                ? "bg-[#427466]/10 text-[#427466]"
-                                                : "text-[#333] hover:bg-[#f5f5f5]"
+                                            ? "bg-[#427466]/10 text-[#427466]"
+                                            : "text-[#333] hover:bg-[#f5f5f5]"
                                             }`}
                                     >
                                         {sub.name}
@@ -226,234 +242,290 @@ export default function Dashboard() {
                     {/* Dashboard Header */}
                     <div className="mb-8 animate-fade-in">
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 rounded-xl bg-gradient-to-br from-[#427466] to-[#365f54]">
-                                <TbLayoutDashboard className="w-6 h-6 text-white" />
+                            <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#427466] to-[#2d5a4e] shadow-lg" style={{ boxShadow: '0 8px 24px rgba(66,116,102,0.3)' }}>
+                                <TbLayoutDashboard className="w-7 h-7 text-white" />
                             </div>
-                            <h2 className="text-[32px] font-bold text-[#1a1a1a] tracking-tight">
-                                Graph Exploration Dashboard
-                            </h2>
+                            <div>
+                                <h2 className="text-[32px] font-bold text-[#1a1a1a] tracking-tight">
+                                    Integrated Graph Exploration Dashboard
+                                </h2>
+                                <p className="text-[#888] text-sm mt-0.5">
+                                    Interactive knowledge graph visualization and node relationship analysis
+                                </p>
+                            </div>
                         </div>
-                        <p className="text-[#666] text-base mt-1 ml-14">
-                            Interactive knowledge graph visualization and node relationship analysis
-                        </p>
                     </div>
 
-                    {/* Graph Controls - Full Width on Top */}
-                    <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 mb-5 animate-fade-in">
-                        <h3 className="text-sm font-semibold text-[#333] mb-4 flex items-center gap-2">
-                            <TbArrowsMaximize className="w-4 h-4 text-[#427466]" />
-                            Graph Controls
-                        </h3>
+                    {/* Graph Controls — Enhanced */}
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[#e5e5e5] overflow-hidden mb-5 animate-fade-in-up hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-300" style={{ animationDelay: '100ms' }}>
+                        {/* Gradient Accent Strip */}
+                        <div className="h-1 bg-gradient-to-r from-[#427466] via-[#5BA899] to-[#427466]" />
 
-                        <div className="flex gap-6">
-                            {/* Node Type Dropdown */}
-                            <div className="flex-1">
-                                <label className="block text-sm text-[#333] mb-2">Select Node Type</label>
-                                <div className="relative">
-                                    <select
-                                        value={nodeType}
-                                        onChange={(e) => {
-                                            setNodeType(e.target.value);
-                                            // Reset relationship type when node type changes
-                                            if (e.target.value === "Patient") {
-                                                setRelationshipType("Patient Drugs");
-                                            } else if (e.target.value === "Visit") {
-                                                setRelationshipType("Visit Diagnosis");
-                                            }
-                                        }}
-                                        className="w-full px-4 py-3 bg-white text-[#1a1a1a] border border-[#1a1a1a] rounded-lg appearance-none cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-[#427466]"
-                                    >
-                                        {nodeTypes.map((type) => (
-                                            <option key={type} value={type}>
-                                                {type}
+                        <div className="p-5">
+                            <h3 className="text-sm font-semibold text-[#1a1a1a] mb-5 flex items-center gap-2">
+                                <div className="p-1.5 rounded-lg bg-[#427466]/10">
+                                    <TbAdjustments className="w-4 h-4 text-[#427466]" />
+                                </div>
+                                Graph Controls
+                            </h3>
+
+                            <div className="flex gap-5">
+                                {/* Node Type Dropdown */}
+                                <div className="flex-1">
+                                    <label className="block text-[10px] text-[#888] mb-2 uppercase tracking-widest font-semibold">
+                                        Node Type
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={nodeType}
+                                            onChange={(e) => {
+                                                setNodeType(e.target.value);
+                                                if (e.target.value === "Patient") {
+                                                    setRelationshipType("Patient Drugs");
+                                                } else if (e.target.value === "Visit") {
+                                                    setRelationshipType("Visit Diagnosis");
+                                                }
+                                            }}
+                                            className="w-full px-4 py-3 bg-gradient-to-br from-gray-50 to-white text-[#1a1a1a] border-2 border-[#e5e5e5] rounded-xl appearance-none cursor-pointer text-sm font-medium focus:outline-none focus:border-[#427466] focus:ring-2 focus:ring-[#427466]/10 transition-all duration-200"
+                                        >
+                                            {nodeTypes.map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <TbChevronDown className="w-4 h-4 text-[#888]" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Relationship Type Dropdown */}
+                                <div className="flex-1">
+                                    <label className="block text-[10px] text-[#888] mb-2 uppercase tracking-widest font-semibold">
+                                        Relation Type
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={relationshipType}
+                                            onChange={(e) => setRelationshipType(e.target.value)}
+                                            className="w-full px-4 py-3 bg-gradient-to-br from-gray-50 to-white text-[#1a1a1a] border-2 border-[#e5e5e5] rounded-xl appearance-none cursor-pointer text-sm font-medium focus:outline-none focus:border-[#427466] focus:ring-2 focus:ring-[#427466]/10 transition-all duration-200"
+                                        >
+                                            {currentRelationshipTypes.map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <TbChevronDown className="w-4 h-4 text-[#888]" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Result Limit Dropdown */}
+                                <div className="flex-1">
+                                    <label className="block text-[10px] text-[#888] mb-2 uppercase tracking-widest font-semibold">
+                                        Result Limit
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={resultLimit}
+                                            onChange={(e) => setResultLimit(Number(e.target.value))}
+                                            className="w-full px-4 py-3 bg-gradient-to-br from-gray-50 to-white text-[#1a1a1a] border-2 border-[#e5e5e5] rounded-xl appearance-none cursor-pointer text-sm font-medium focus:outline-none focus:border-[#427466] focus:ring-2 focus:ring-[#427466]/10 transition-all duration-200"
+                                        >
+                                            <option value={10}>10</option>
+                                            <option value={20}>20</option>
+                                            <option value={50}>50</option>
+                                            <option value={0}>No Limit</option>
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <TbChevronDown className="w-4 h-4 text-[#888]" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ID Selection and Run Query Button */}
+                            <div className="mt-5 flex gap-4 items-end">
+                                {/* ID Dropdown */}
+                                <div className="flex-1">
+                                    <label className="block text-[10px] text-[#888] mb-2 uppercase tracking-widest font-semibold">
+                                        <TbHash className="w-3 h-3 inline -mt-0.5 mr-1" />
+                                        {nodeType === "Patient" ? "Patient ID" : "Visit ID"}
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={inputValue}
+                                            onChange={(e) => setInputValue(e.target.value)}
+                                            className="w-full px-4 py-3 bg-gradient-to-br from-gray-50 to-white text-[#1a1a1a] border-2 border-[#e5e5e5] rounded-xl appearance-none cursor-pointer text-sm font-medium focus:outline-none focus:border-[#427466] focus:ring-2 focus:ring-[#427466]/10 transition-all duration-200"
+                                            disabled={loadingIds}
+                                        >
+                                            <option value="">
+                                                {loadingIds ? "Loading..." : `-- Select ${nodeType} ID --`}
                                             </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                        <svg className="w-4 h-4 text-[#1a1a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
+                                            {availableIds.map(id => (
+                                                <option key={id} value={id}>{id}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <TbChevronDown className="w-4 h-4 text-[#888]" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Relationship Type Dropdown */}
-                            <div className="flex-1">
-                                <label className="block text-sm text-[#333] mb-2">Select Relation Type</label>
-                                <div className="relative">
-                                    <select
-                                        value={relationshipType}
-                                        onChange={(e) => setRelationshipType(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white text-[#1a1a1a] border border-[#1a1a1a] rounded-lg appearance-none cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-[#427466]"
-                                    >
-                                        {currentRelationshipTypes.map((type) => (
-                                            <option key={type} value={type}>
-                                                {type}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                        <svg className="w-4 h-4 text-[#1a1a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Result Limit Dropdown */}
-                            <div className="flex-1">
-                                <label className="block text-sm text-[#333] mb-2">Result Limit</label>
-                                <div className="relative">
-                                    <select
-                                        value={resultLimit}
-                                        onChange={(e) => setResultLimit(Number(e.target.value))}
-                                        className="w-full px-4 py-3 bg-white text-[#1a1a1a] border border-[#1a1a1a] rounded-lg appearance-none cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-[#427466]"
-                                    >
-                                        <option value={10}>10</option>
-                                        <option value={20}>20</option>
-                                        <option value={50}>50</option>
-                                        <option value={0}>No Limit</option>
-                                    </select>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                        <svg className="w-4 h-4 text-[#1a1a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ID Selection and Run Query Button */}
-                        <div className="mt-5 flex gap-4 items-end">
-                            {/* ID Dropdown */}
-                            <div className="flex-1">
-                                <label className="block text-sm text-[#333] mb-2">
-                                    {nodeType === "Patient" ? "Select Patient ID" : "Select Visit ID"}
-                                </label>
-                                <select
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    className="w-full px-4 py-3 bg-white text-[#1a1a1a] border border-[#1a1a1a] rounded-lg appearance-none cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-[#427466]"
-                                    disabled={loadingIds}
+                                {/* Run Query Button */}
+                                <button
+                                    onClick={runQuery}
+                                    disabled={isQuerying || !inputValue}
+                                    className="cursor-pointer px-8 py-3 bg-gradient-to-r from-[#427466] to-[#2d5a4e] text-white rounded-xl font-semibold text-sm disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2 hover:shadow-[0_8px_24px_rgba(66,116,102,0.35)] hover:scale-[1.02] active:scale-[0.98]"
                                 >
-                                    <option value="">
-                                        {loadingIds ? "Loading..." : `-- Select ${nodeType} ID --`}
-                                    </option>
-                                    {availableIds.map(id => (
-                                        <option key={id} value={id}>{id}</option>
-                                    ))}
-                                </select>
+                                    {isQuerying ? (
+                                        <>
+                                            <TbLoader2 className="w-4 h-4 animate-spin" />
+                                            Querying...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TbSearch className="w-4 h-4 cursor-pointer" />
+                                            Run Query
+                                        </>
+                                    )}
+                                </button>
                             </div>
-
-                            {/* Run Query Button */}
-                            <button
-                                onClick={runQuery}
-                                disabled={isQuerying || !inputValue}
-                                className="cursor-pointer px-8 py-3 bg-[#427466] text-white rounded-lg font-semibold text-sm hover:bg-[#365f54] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                            >
-                                {isQuerying ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        Querying...
-                                    </>
-                                ) : (
-                                    <>
-                                        <TbNetwork className="w-4 h-4 cursor-pointer" />
-                                        Run Query
-                                    </>
-                                )}
-                            </button>
                         </div>
                     </div>
 
                     {/* Two Column Layout - Graph Visualization and Node Details */}
-                    <div className="grid grid-cols-[1fr_420px] gap-5 animate-fade-in">
+                    <div className="grid grid-cols-[1fr_420px] gap-5">
                         {/* Graph Visualization */}
-                        <div className="relative">
+                        <div className="relative animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                             {records.graph ? (
-                                <GraphView
-                                    graph={records.graph}
-                                    onNodeClick={setSelectedNode}
-                                />
+                                <div className="rounded-2xl overflow-hidden border border-[#e5e5e5]">
+                                    <div className="h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400" />
+                                    <GraphView
+                                        graph={records.graph}
+                                        onNodeClick={setSelectedNode}
+                                    />
+                                </div>
                             ) : (
-                                <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] p-12 h-[600px] flex items-center justify-center">
-                                    <div className="text-center">
-                                        <TbNetwork className="w-16 h-16 text-[#d1d1d1] mx-auto mb-4" />
-                                        <p className="text-[#666] text-sm">
-                                            {isQuerying ? "Loading graph..." : "Select options and click Run Query to visualize the knowledge graph"}
-                                        </p>
+                                <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden h-[600px]">
+                                    <div className="h-1 bg-gradient-to-r from-[#427466]/30 via-[#5BA899]/30 to-[#427466]/30" />
+                                    <div className="h-[calc(100%-4px)] flex items-center justify-center">
+                                        <div className="text-center">
+                                            {isQuerying ? (
+                                                <>
+                                                    <div className="relative mx-auto w-16 h-16 mb-4">
+                                                        <TbLoader2 className="w-16 h-16 text-[#427466] animate-spin" />
+                                                        <div className="absolute inset-0 rounded-full bg-[#427466]/10 animate-ping" />
+                                                    </div>
+                                                    <p className="text-[#666] text-sm font-medium">Querying knowledge graph...</p>
+                                                    <p className="text-[#bbb] text-xs mt-1">Fetching nodes and relationships</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#427466]/10 to-[#427466]/5 flex items-center justify-center animate-pulse-subtle">
+                                                        <TbNetwork className="w-10 h-10 text-[#427466]/40" />
+                                                    </div>
+                                                    <p className="text-[#666] text-sm font-medium">
+                                                        Select options and click Run Query
+                                                    </p>
+                                                    <p className="text-[#bbb] text-xs mt-1">
+                                                        The knowledge graph will appear here
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Right Panel - Node Details */}
-                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 h-[600px] overflow-y-auto">
-                            <div className="flex items-center justify-between mb-5">
-                                <h3 className="text-xs font-semibold text-[#666] tracking-wider">
-                                    NODE DETAILS
-                                </h3>
-                                {selectedNode && (
-                                    <button
-                                        onClick={() => setSelectedNode(null)}
-                                        className="cursor-pointer text-xs text-[#427466] hover:text-[#365f54] font-medium"
-                                    >
-                                        Clear
-                                    </button>
-                                )}
-                            </div>
+                        {/* Right Panel — Node Details (Enhanced) */}
+                        <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden h-[600px] flex flex-col animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                            {/* Gradient Accent Strip */}
+                            <div className="h-1 bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400" />
 
-                            {selectedNode ? (
-                                <div className="space-y-4">
-                                    {/* Node Type Badge */}
+                            <div className="p-5 flex flex-col h-[calc(100%-4px)]">
+                                <div className="flex items-center justify-between mb-5 flex-shrink-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-bold text-[#888] uppercase tracking-wide">Type</span>
-                                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${selectedNode.group === "Patient" ? "bg-[#427466]/10 text-[#427466]" :
-                                            selectedNode.group === "Drug" ? "bg-[#10b981]/10  text-[#10b981]" :
-                                                selectedNode.group === "Diagnosis" ? "bg-[#f59e0b]/10 text-[#f59e0b]" :
-                                                    "bg-[#8b5cf6]/10 text-[#8b5cf6]"
-                                            }`}>
-                                            {selectedNode.group}
-                                        </span>
-                                    </div>
-
-                                    {/* Node Properties */}
-                                    {selectedNode.properties && Object.entries(selectedNode.properties).map(([key, value]) => (
-                                        <div key={key} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                            <div className="text-[10px] font-bold text-[#888] uppercase tracking-wide mb-1">
-                                                {key.replace(/_/g, " ")}
-                                            </div>
-                                            <div className="text-sm text-[#1a1a1a] font-medium break-words">
-                                                {String(value)}
-                                            </div>
+                                        <div className="p-1 rounded-md bg-violet-500/10">
+                                            <TbClick className="w-4 h-4 text-violet-500" />
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                                        <TbUserHeart className="w-6 h-6 text-gray-400" />
+                                        <h3 className="text-xs font-bold text-[#1a1a1a] uppercase tracking-wider">
+                                            Node Details
+                                        </h3>
                                     </div>
-                                    <p className="text-sm text-[#999]">
-                                        Click a node in the graph to view its details
-                                    </p>
+                                    {selectedNode && (
+                                        <button
+                                            onClick={() => setSelectedNode(null)}
+                                            className="cursor-pointer text-[10px] px-3 py-1 rounded-lg bg-[#427466]/10 text-[#427466] hover:bg-[#427466]/20 font-semibold transition-colors uppercase tracking-wider"
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
                                 </div>
-                            )}
+
+                                <div className="flex-1 overflow-y-auto pr-1">
+                                    {selectedNode ? (
+                                        <div className="space-y-3 animate-fadeIn">
+                                            {/* Node Type Badge */}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold text-[#888] uppercase tracking-widest">Type</span>
+                                                <span className={`px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r ${getNodeTypeColor(selectedNode.group).bg} text-white shadow-sm`}>
+                                                    {selectedNode.group}
+                                                </span>
+                                            </div>
+
+                                            {/* Node Properties */}
+                                            {selectedNode.properties && Object.entries(selectedNode.properties).map(([key, value], index) => (
+                                                <div
+                                                    key={key}
+                                                    className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-3.5 border border-gray-200 hover:border-[#427466]/30 hover:shadow-sm transition-all duration-200 animate-fade-in-up"
+                                                    style={{
+                                                        animationDelay: `${index * 60}ms`, borderLeft: `3px solid ${selectedNode.group === "Patient" ? "#427466" :
+                                                            selectedNode.group === "Drug" ? "#10b981" :
+                                                                selectedNode.group === "Diagnosis" ? "#f59e0b" :
+                                                                    selectedNode.group === "Visit" ? "#0ea5e9" : "#8b5cf6"
+                                                            }`
+                                                    }}
+                                                >
+                                                    <div className="text-[10px] font-bold text-[#888] uppercase tracking-widest mb-1">
+                                                        {key.replace(/_/g, " ")}
+                                                    </div>
+                                                    <div className="text-sm text-[#1a1a1a] font-medium break-words">
+                                                        {String(value)}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-center">
+                                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 flex items-center justify-center mb-4 animate-pulse-subtle">
+                                                <TbClick className="w-8 h-8 text-violet-400/50" />
+                                            </div>
+                                            <p className="text-sm text-[#888] font-medium">
+                                                Click a node in the graph
+                                            </p>
+                                            <p className="text-xs text-[#ccc] mt-1">
+                                                Properties and details will appear here
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </main >
+            </main>
 
-            <style jsx>{`
+            {/* CSS Animations */}
+            <style jsx global>{`
                 @keyframes fade-in {
                     from { opacity: 0; }
                     to { opacity: 1; }
                 }
-                
-                .animate-fade-in {
-                    animation: fade-in 0.4s ease-out forwards;
-                }
-                
+
                 @keyframes fade-in-up {
                     from {
                         opacity: 0;
@@ -464,12 +536,52 @@ export default function Dashboard() {
                         transform: translateY(0);
                     }
                 }
-                
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                @keyframes pulse-subtle {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.7; transform: scale(0.97); }
+                }
+
+                .animate-fade-in {
+                    animation: fade-in 0.4s ease-out forwards;
+                }
+
                 .animate-fade-in-up {
                     animation: fade-in-up 0.6s ease-out forwards;
                     opacity: 0;
                 }
+
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out;
+                }
+
+                .animate-pulse-subtle {
+                    animation: pulse-subtle 2.5s ease-in-out infinite;
+                }
+
+                /* Custom scrollbar */
+                .overflow-y-auto::-webkit-scrollbar {
+                    width: 4px;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-thumb {
+                    background: #d1d5db;
+                    border-radius: 20px;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                    background: #9ca3af;
+                }
             `}</style>
-        </div >
+        </div>
     );
 }

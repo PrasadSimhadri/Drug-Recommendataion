@@ -553,8 +553,8 @@ export default function PatientDR() {
     ];
 
     const graphSubItems = [
-        { name: "Integrated Graph", href: "/dashboard" },
         { name: "UMLS Graph", href: "/umls-graph" },
+        { name: "Integrated Graph", href: "/dashboard" },
     ];
 
     const isGraphPage = pathname === "/dashboard" || pathname === "/umls-graph";
@@ -688,8 +688,8 @@ export default function PatientDR() {
                         <button
                             onClick={() => setGraphDropdownOpen(!graphDropdownOpen)}
                             className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${isGraphPage
-                                    ? "bg-[#427466] text-white"
-                                    : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
+                                ? "bg-[#427466] text-white"
+                                : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
                                 }`}
                         >
                             <TbGraph className="w-4 h-4" />
@@ -704,8 +704,8 @@ export default function PatientDR() {
                                         href={sub.href}
                                         onClick={() => setGraphDropdownOpen(false)}
                                         className={`block px-5 py-3 text-sm font-medium transition-colors ${pathname === sub.href
-                                                ? "bg-[#427466]/10 text-[#427466]"
-                                                : "text-[#333] hover:bg-[#f5f5f5]"
+                                            ? "bg-[#427466]/10 text-[#427466]"
+                                            : "text-[#333] hover:bg-[#f5f5f5]"
                                             }`}
                                     >
                                         {sub.name}
@@ -758,8 +758,8 @@ export default function PatientDR() {
                     {/* Search Section — Glassmorphism */}
                     <div className="mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                         <div className={`inline-flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 ${isFocused
-                                ? 'bg-white/90 backdrop-blur-sm border-[#427466]/30 shadow-[0_8px_32px_rgba(66,116,102,0.12)]'
-                                : 'bg-white/70 backdrop-blur-sm border-[#e5e5e5] shadow-sm'
+                            ? 'bg-white/90 backdrop-blur-sm border-[#427466]/30 shadow-[0_8px_32px_rgba(66,116,102,0.12)]'
+                            : 'bg-white/70 backdrop-blur-sm border-[#e5e5e5] shadow-sm'
                             }`}>
                             <div className="relative">
                                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#888]">
