@@ -7,7 +7,8 @@ import {
     TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbLoader2,
     TbChevronDown, TbChevronUp, TbPill, TbTag, TbCode, TbDatabase,
     TbSearch, TbUser, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork,
-    TbStethoscope, TbFileText, TbChartBar, TbGraph
+    TbStethoscope, TbFileText, TbChartBar, TbGraph, TbSparkles,
+    TbHeartbeat, TbTargetArrow, TbActivity
 } from "react-icons/tb";
 
 // API base URLs
@@ -44,46 +45,38 @@ interface NodePosition {
     vy: number;
 }
 
-// Floating Label Input Component
-interface FloatingInputProps {
-    value: string;
-    onChange: (value: string) => void;
-    onKeyDown?: (e: React.KeyboardEvent) => void;
-    placeholder: string;
-    icon?: React.ReactNode;
-}
+// Rank badge colors
+const rankStyles = [
+    { bg: "from-amber-400 to-yellow-500", shadow: "rgba(245,158,11,0.4)", text: "text-white" },   // #1 Gold
+    { bg: "from-slate-300 to-slate-400", shadow: "rgba(148,163,184,0.4)", text: "text-white" },    // #2 Silver
+    { bg: "from-amber-600 to-orange-700", shadow: "rgba(180,83,9,0.4)", text: "text-white" },      // #3 Bronze
+    { bg: "from-[#427466] to-[#2d5a4e]", shadow: "rgba(66,116,102,0.3)", text: "text-white" },     // #4 Teal
+    { bg: "from-[#427466] to-[#2d5a4e]", shadow: "rgba(66,116,102,0.3)", text: "text-white" },     // #5 Teal
+];
 
-function FloatingInput({ value, onChange, onKeyDown, placeholder, icon }: FloatingInputProps) {
-    const [isFocused, setIsFocused] = useState(false);
-    const hasValue = value.length > 0;
-    const isFloating = isFocused || hasValue;
-
+// Stat Card Component
+function StatCard({ icon: Icon, label, value, color, delay }: {
+    icon: React.ElementType;
+    label: string;
+    value: string | number;
+    color: string;
+    delay: number;
+}) {
     return (
-        <div className="relative">
-            {icon && (
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666] z-10">
-                    {icon}
-                </div>
-            )}
-            <input
-                type="text"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                onKeyDown={onKeyDown}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                className={`w-72 px-4 py-3 ${icon ? 'pl-10' : ''} border-2 rounded-lg text-sm bg-white focus:outline-none transition-all duration-200
-                    ${isFocused ? 'border-[#427466]' : 'border-[#e5e5e5]'}`}
-            />
-            <label
-                className={`absolute left-3 ${icon ? 'left-10' : ''} transition-all duration-200 pointer-events-none px-1 bg-white
-                    ${isFloating
-                        ? '-top-2.5 text-xs text-[#427466] font-medium'
-                        : 'top-1/2 -translate-y-1/2 text-sm text-[#999]'
-                    }`}
+        <div
+            className="bg-white rounded-2xl border border-[#e5e5e5] p-5 flex items-center gap-4 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 animate-fade-in-up"
+            style={{ animationDelay: `${delay}ms` }}
+        >
+            <div
+                className="p-3 rounded-xl"
+                style={{ background: `linear-gradient(135deg, ${color}20, ${color}10)` }}
             >
-                {placeholder}
-            </label>
+                <Icon className="w-6 h-6" style={{ color }} />
+            </div>
+            <div>
+                <p className="text-2xl font-bold text-[#1a1a1a]">{value}</p>
+                <p className="text-xs text-[#888] font-medium uppercase tracking-wider">{label}</p>
+            </div>
         </div>
     );
 }
@@ -94,13 +87,20 @@ interface DrugCardProps {
     rank: number;
     isTop: boolean;
     maxScore: number;
+    index: number;
 }
 
-function DrugCard({ drug, rank, isTop, maxScore }: DrugCardProps) {
+function DrugCard({ drug, rank, isTop, maxScore, index }: DrugCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [details, setDetails] = useState<DrugDetails | null>(null);
-    const [loading, setLoading] = useState(false);
     const [drugName, setDrugName] = useState<string>("");
+    const [barVisible, setBarVisible] = useState(false);
+
+    // Animate the score bar on mount
+    useEffect(() => {
+        const timer = setTimeout(() => setBarVisible(true), 400 + index * 150);
+        return () => clearTimeout(timer);
+    }, [index]);
 
     // Fetch drug name on mount
     useEffect(() => {
@@ -125,33 +125,46 @@ function DrugCard({ drug, rank, isTop, maxScore }: DrugCardProps) {
         setExpanded(!expanded);
     };
 
+    const style = rankStyles[rank - 1] || rankStyles[4];
+    const scorePercent = Math.min((drug.score / maxScore) * 100, 100);
+
     return (
         <div
             onClick={handleExpand}
-            className={`rounded-xl border overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-md ${isTop ? "bg-[#F0FDF4] border-[#86EFAC]" : "bg-white border-[#e5e5e5] hover:border-[#427466]"
-                }`}
+            className={`rounded-2xl border overflow-hidden transition-all duration-300 cursor-pointer animate-fade-in-up group
+                ${isTop
+                    ? "bg-gradient-to-br from-[#F0FDF4] to-[#ECFDF5] border-[#86EFAC] shadow-[0_4px_20px_rgba(34,197,94,0.12)]"
+                    : "bg-white border-[#e5e5e5] hover:border-[#427466]/40"
+                }
+                hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:-translate-y-0.5`}
+            style={{ animationDelay: `${index * 100}ms` }}
         >
+            {/* Top Accent Line */}
+            {isTop && (
+                <div className="h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400" />
+            )}
+
             {/* Main Card Content */}
             <div className="p-4">
-                {/* Header Row: Rank, Drug Info, Score, Expand Icon */}
+                {/* Header Row */}
                 <div className="flex items-start gap-3">
                     {/* Rank Badge */}
-                    <span
-                        className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold flex-shrink-0 ${isTop ? "bg-[#84CC16] text-white" : "bg-[#E5E7EB] text-[#333]"
-                            }`}
+                    <div
+                        className={`w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br ${style.bg} ${style.text} text-sm font-bold flex-shrink-0`}
+                        style={{ boxShadow: `0 4px 12px ${style.shadow}` }}
                     >
                         {rank}
-                    </span>
+                    </div>
 
                     {/* Drug Name and CUID */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                             <TbPill className="w-4 h-4 text-[#427466] flex-shrink-0" />
-                            <span className="text-sm font-semibold text-[#333] truncate">
+                            <span className="text-sm font-semibold text-[#1a1a1a] truncate">
                                 {drugName || drug.cuid}
                             </span>
                         </div>
-                        <p className="text-xs text-[#666] mt-0.5 flex items-center gap-1">
+                        <p className="text-xs text-[#888] mt-0.5 flex items-center gap-1 font-mono">
                             <TbTag className="w-3 h-3 flex-shrink-0" />
                             {drug.cuid}
                         </p>
@@ -160,83 +173,96 @@ function DrugCard({ drug, rank, isTop, maxScore }: DrugCardProps) {
                     {/* Score and Expand Icon */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                         <div className="text-right">
-                            <span className="text-lg font-bold text-[#333]">{drug.score.toFixed(2)}</span>
-                            <p className="text-xs text-[#666]">score</p>
+                            <span className="text-lg font-bold bg-gradient-to-r from-[#427466] to-[#2d5a4e] bg-clip-text text-transparent">
+                                {drug.score.toFixed(2)}
+                            </span>
+                            <p className="text-[10px] text-[#888] uppercase tracking-wider font-medium">score</p>
                         </div>
-                        {expanded ? (
-                            <TbChevronUp className="w-5 h-5 text-[#666]" />
-                        ) : (
-                            <TbChevronDown className="w-5 h-5 text-[#666]" />
-                        )}
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 ${expanded ? 'bg-[#427466]/10 rotate-180' : 'group-hover:bg-gray-100'}`}>
+                            <TbChevronDown className="w-4 h-4 text-[#666]" />
+                        </div>
                     </div>
                 </div>
 
-                {/* Progress Bar */}
+                {/* Animated Score Bar */}
                 <div className="mt-3">
-                    <div className="w-full h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-[#f0f0f0] rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-gradient-to-r from-[#3C3CE8] to-[#7373FF] rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min((drug.score / maxScore) * 100, 100)}%` }}
+                            className="h-full rounded-full transition-all duration-1000 ease-out"
+                            style={{
+                                width: barVisible ? `${scorePercent}%` : '0%',
+                                background: isTop
+                                    ? 'linear-gradient(90deg, #10B981, #06B6D4)'
+                                    : 'linear-gradient(90deg, #427466, #5BA899)',
+                                boxShadow: isTop ? '0 0 8px rgba(16,185,129,0.4)' : undefined,
+                                transitionDelay: `${index * 150}ms`,
+                            }}
                         />
                     </div>
                 </div>
 
                 {/* Top Recommendation Label */}
                 {isTop && (
-                    <p className="text-xs text-[#427466] mt-2 flex items-center gap-1">
-                        <TbStar className="w-3 h-3 fill-[#427466]" />
-                        Highest confidence recommendation
-                    </p>
+                    <div className="mt-2.5 flex items-center gap-1.5">
+                        <div className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-full">
+                            <TbSparkles className="w-3 h-3 text-emerald-500" />
+                            <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">
+                                Highest Confidence
+                            </span>
+                        </div>
+                    </div>
                 )}
             </div>
 
             {/* Expanded Details Section */}
             {expanded && details && (
-                <div className="px-4 pb-4">
-                    <div className="bg-[#f8f9fa] rounded-lg p-4 space-y-3 text-sm">
-                        {/* Drug Name */}
-                        <div className="flex items-start gap-3">
-                            <TbPill className="w-5 h-5 text-[#427466] mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-xs text-[#999] uppercase tracking-wide font-medium">Drug Name</p>
-                                <p className="text-[#333] font-medium">{details.name}</p>
+                <div className="px-4 pb-4 animate-fadeIn">
+                    <div className="bg-gradient-to-br from-[#f8fafb] to-[#f0f4f3] rounded-xl p-4 border border-[#e5e5e5]/60 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                            {/* Drug Name */}
+                            <div className="flex items-start gap-2.5 p-3 bg-white/80 rounded-lg">
+                                <TbPill className="w-4 h-4 text-[#427466] mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] text-[#999] uppercase tracking-widest font-semibold">Drug Name</p>
+                                    <p className="text-xs text-[#1a1a1a] font-medium mt-0.5">{details.name}</p>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Semantic Types */}
-                        <div className="flex items-start gap-3">
-                            <TbTag className="w-5 h-5 text-[#427466] mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-xs text-[#999] uppercase tracking-wide font-medium">Semantic Types</p>
-                                <p className="text-[#333]">{details.semantic_types}</p>
+                            {/* Semantic Types */}
+                            <div className="flex items-start gap-2.5 p-3 bg-white/80 rounded-lg">
+                                <TbTag className="w-4 h-4 text-[#427466] mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] text-[#999] uppercase tracking-widest font-semibold">Semantic Types</p>
+                                    <p className="text-xs text-[#1a1a1a] mt-0.5">{details.semantic_types}</p>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Canonical Code */}
-                        <div className="flex items-start gap-3">
-                            <TbCode className="w-5 h-5 text-[#427466] mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-xs text-[#999] uppercase tracking-wide font-medium">Canonical Code</p>
-                                <p className="text-[#333] font-mono text-sm bg-white px-2 py-1 rounded border">{details.canonical_code}</p>
+                            {/* Canonical Code */}
+                            <div className="flex items-start gap-2.5 p-3 bg-white/80 rounded-lg">
+                                <TbCode className="w-4 h-4 text-[#427466] mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] text-[#999] uppercase tracking-widest font-semibold">Canonical Code</p>
+                                    <p className="text-xs text-[#1a1a1a] font-mono mt-0.5 bg-[#427466]/5 px-2 py-0.5 rounded inline-block">{details.canonical_code}</p>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Sources */}
-                        <div className="flex items-start gap-3">
-                            <TbDatabase className="w-5 h-5 text-[#427466] mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-xs text-[#999] uppercase tracking-wide font-medium">Sources</p>
-                                <p className="text-[#333]">{details.sources}</p>
+                            {/* Sources */}
+                            <div className="flex items-start gap-2.5 p-3 bg-white/80 rounded-lg">
+                                <TbDatabase className="w-4 h-4 text-[#427466] mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] text-[#999] uppercase tracking-widest font-semibold">Sources</p>
+                                    <p className="text-xs text-[#1a1a1a] mt-0.5">{details.sources}</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Synonyms */}
                         {details.synonyms && (
-                            <div className="pt-3 border-t border-[#e5e5e5]">
-                                <p className="text-xs text-[#999] uppercase tracking-wide font-medium mb-2">Synonyms</p>
-                                <div className="flex flex-wrap gap-1">
-                                    {details.synonyms.split(';').slice(0, 3).map((syn, i) => (
-                                        <span key={i} className="px-2 py-1 bg-white border border-[#e5e5e5] rounded text-xs text-[#555]">
+                            <div className="pt-3 border-t border-[#e5e5e5]/60">
+                                <p className="text-[10px] text-[#999] uppercase tracking-widest font-semibold mb-2">Synonyms</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {details.synonyms.split(';').slice(0, 4).map((syn, i) => (
+                                        <span key={i} className="px-2.5 py-1 bg-white border border-[#e5e5e5] rounded-lg text-[10px] text-[#555] font-medium hover:border-[#427466]/40 transition-colors">
                                             {syn.trim()}
                                         </span>
                                     ))}
@@ -358,14 +384,20 @@ function NetworkGraph({ patientId, recommendations, drugNames }: NetworkGraphPro
     };
 
     const getEdgeColor = (normalizedScore: number) => {
-        const opacity = 0.4 + (normalizedScore * 0.4);
+        const opacity = 0.3 + (normalizedScore * 0.5);
         return `rgba(66, 116, 102, ${opacity})`;
     };
 
     if (recommendations.length === 0 || nodePositions.length === 0) {
         return (
             <div className="w-full h-full flex items-center justify-center">
-                <p className="text-[#999]">Enter a Patient ID to see the network</p>
+                <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#427466]/10 to-[#427466]/5 flex items-center justify-center animate-pulse-subtle">
+                        <TbNetwork className="w-10 h-10 text-[#427466]/40" />
+                    </div>
+                    <p className="text-[#999] text-sm font-medium">Enter a Patient ID to see the network</p>
+                    <p className="text-[#ccc] text-xs mt-1">Drag nodes to explore connections</p>
+                </div>
             </div>
         );
     }
@@ -385,6 +417,15 @@ function NetworkGraph({ patientId, recommendations, drugNames }: NetworkGraphPro
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
             >
+                {/* Subtle radial gradient background */}
+                <defs>
+                    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#427466" stopOpacity="0.04" />
+                        <stop offset="100%" stopColor="#427466" stopOpacity="0" />
+                    </radialGradient>
+                </defs>
+                <circle cx="300" cy="220" r="200" fill="url(#bgGlow)" />
+
                 {/* Edges */}
                 {nodePositions.map((node, index) => {
                     const normalizedScore = (recommendations[index].score - minScore) / scoreRange;
@@ -396,8 +437,9 @@ function NetworkGraph({ patientId, recommendations, drugNames }: NetworkGraphPro
                             x2={node.x}
                             y2={node.y}
                             stroke={getEdgeColor(normalizedScore)}
-                            strokeWidth={2 + normalizedScore * 2}
+                            strokeWidth={1.5 + normalizedScore * 2.5}
                             strokeLinecap="round"
+                            strokeDasharray={normalizedScore < 0.3 ? "4 4" : "none"}
                         />
                     );
                 })}
@@ -417,7 +459,7 @@ function NetworkGraph({ patientId, recommendations, drugNames }: NetworkGraphPro
                             onMouseDown={(e) => handleMouseDown(index, e)}
                         >
                             {normalizedScore > 0.6 && (
-                                <circle cx={node.x} cy={node.y} r={42} fill={nodeColor} opacity={0.25} />
+                                <circle cx={node.x} cy={node.y} r={42} fill={nodeColor} opacity={0.2} />
                             )}
 
                             <circle
@@ -427,7 +469,7 @@ function NetworkGraph({ patientId, recommendations, drugNames }: NetworkGraphPro
                                 fill={nodeColor}
                                 stroke="#fff"
                                 strokeWidth={3}
-                                style={{ filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.2))' }}
+                                style={{ filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.2))' }}
                             />
 
                             <circle cx={node.x + 25} cy={node.y - 25} r={13} fill="#427466" stroke="#fff" strokeWidth={2} />
@@ -492,6 +534,7 @@ export default function PatientDR() {
     const [zoom, setZoom] = useState(1);
     const [graphDropdownOpen, setGraphDropdownOpen] = useState(false);
     const graphDropdownRef = useRef<HTMLDivElement>(null);
+    const [isFocused, setIsFocused] = useState(false);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -544,17 +587,14 @@ export default function PatientDR() {
 
             // Fetch diagnoses
             try {
-                // Request more diagnoses since some may not have CUI names
                 const diagResponse = await fetch(`${RECOMMEND_API}/api/diagnoses/${patientId}?top_k=20`);
                 if (diagResponse.ok) {
                     const diagData = await diagResponse.json();
 
-                    // Fetch names for diagnoses and filter out ones without names
                     const diagNames: Record<string, string> = {};
                     const validDiagnoses: DiagnosisItem[] = [];
 
                     for (const diag of diagData.diagnoses || []) {
-                        // Stop if we already have 10 valid diagnoses
                         if (validDiagnoses.length >= 10) break;
 
                         try {
@@ -562,13 +602,11 @@ export default function PatientDR() {
                             if (res.ok) {
                                 const cuiData = await res.json();
                                 if (cuiData.found && cuiData.data && cuiData.data.name) {
-                                    // Only keep diagnoses with valid names
                                     diagNames[diag.cui] = cuiData.data.name;
                                     validDiagnoses.push(diag);
                                 }
                             }
                         } catch {
-                            // Skip diagnoses that fail to fetch
                             continue;
                         }
                     }
@@ -578,7 +616,6 @@ export default function PatientDR() {
                 }
             } catch (diagError) {
                 console.error("Failed to fetch diagnoses:", diagError);
-                // Don't fail the whole request if diagnoses fail
                 setDiagnoses([]);
                 setDiagnosisNames({});
             }
@@ -701,103 +738,143 @@ export default function PatientDR() {
             {/* Main Content */}
             <main className="relative z-10">
                 <div className="w-full px-8 py-6">
+                    {/* Page Header */}
                     <div className="mb-8 animate-fade-in">
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 rounded-xl bg-gradient-to-br from-[#427466] to-[#365f54]">
-                                <TbUserHeart className="w-6 h-6 text-white" />
+                            <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#427466] to-[#2d5a4e] shadow-lg" style={{ boxShadow: '0 8px 24px rgba(66,116,102,0.3)' }}>
+                                <TbUserHeart className="w-7 h-7 text-white" />
                             </div>
-                            <h2 className="text-[32px] font-bold text-[#1a1a1a] tracking-tight">
-                                Patient Drug Recommendation
-                            </h2>
+                            <div>
+                                <h2 className="text-[32px] font-bold text-[#1a1a1a] tracking-tight">
+                                    Patient Drug Recommendation
+                                </h2>
+                                <p className="text-[#888] text-sm mt-0.5">
+                                    Personalized drug recommendations powered by graph neural networks
+                                </p>
+                            </div>
                         </div>
-                        <p className="text-[#666] text-base mt-1 ml-14">
-                            Personalized drug recommendations based on patient profile and network
-                        </p>
                     </div>
 
-                    {/* Search Section with Floating Label */}
-                    <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 mb-5 inline-flex items-center gap-4 animate-fade-in">
-                        <FloatingInput
-                            value={patientId}
-                            onChange={setPatientId}
-                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                            placeholder="Enter Patient ID"
-                            icon={<TbUser className="w-5 h-5" />}
-                        />
-                        <button
-                            onClick={handleSearch}
-                            disabled={loading}
-                            className="cursor-pointer px-6 py-3 bg-[#427466] text-white rounded-lg text-sm font-medium hover:bg-[#365f54] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                            {loading ? (
-                                <TbLoader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <TbSearch className="w-5 h-5" />
-                            )}
-                            {loading ? "Searching..." : "Search"}
-                        </button>
+                    {/* Search Section — Glassmorphism */}
+                    <div className="mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                        <div className={`inline-flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 ${isFocused
+                                ? 'bg-white/90 backdrop-blur-sm border-[#427466]/30 shadow-[0_8px_32px_rgba(66,116,102,0.12)]'
+                                : 'bg-white/70 backdrop-blur-sm border-[#e5e5e5] shadow-sm'
+                            }`}>
+                            <div className="relative">
+                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#888]">
+                                    <TbUser className="w-5 h-5" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={patientId}
+                                    onChange={(e) => setPatientId(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                                    onFocus={() => setIsFocused(true)}
+                                    onBlur={() => setIsFocused(false)}
+                                    placeholder="Enter Patient ID..."
+                                    className="w-80 pl-11 pr-4 py-3 border-2 rounded-xl text-sm bg-white/80 focus:outline-none transition-all duration-200 border-[#e5e5e5] focus:border-[#427466] placeholder:text-[#bbb]"
+                                />
+                            </div>
+                            <button
+                                onClick={handleSearch}
+                                disabled={loading}
+                                className="cursor-pointer px-7 py-3 bg-gradient-to-r from-[#427466] to-[#2d5a4e] text-white rounded-xl text-sm font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 hover:shadow-[0_8px_24px_rgba(66,116,102,0.35)] hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                                {loading ? (
+                                    <TbLoader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <TbSearch className="w-5 h-5" />
+                                )}
+                                {loading ? "Analyzing..." : "Get Recommendations"}
+                            </button>
+                        </div>
                     </div>
 
                     {error && (
-                        <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                        <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm flex items-center gap-2 animate-fade-in">
+                            <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
                             {error}
                         </div>
                     )}
 
-                    {/* Diagnosis Section - Expandable */}
+                    {/* Stats Summary Row */}
+                    {/* {recommendations.length > 0 && (
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                            <StatCard
+                                icon={TbPill}
+                                label="Drugs Found"
+                                value={recommendations.length}
+                                color="#427466"
+                                delay={0}
+                            />
+                            <StatCard
+                                icon={TbTargetArrow}
+                                label="Top Score"
+                                value={maxScore.toFixed(3)}
+                                color="#F59E0B"
+                                delay={100}
+                            />
+                            <StatCard
+                                icon={TbStethoscope}
+                                label="Diagnoses"
+                                value={diagnoses.length}
+                                color="#EC4899"
+                                delay={200}
+                            />
+                        </div>
+                    )} */}
+
+                    {/* Diagnosis Section — Enhanced */}
                     {diagnoses.length > 0 && (
-                        <div className="mb-5 bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden animate-fade-in">
+                        <div className="mb-5 bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                             <button
                                 onClick={() => setShowDiagnoses(!showDiagnoses)}
-                                className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                                className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50/80 transition-colors cursor-pointer"
                             >
-                                <div className="flex items-center gap-2">
-                                    <TbStethoscope className="w-5 h-5 text-[#427466]" />
-                                    <h3 className="text-sm font-semibold text-[#333]">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-pink-500/10 to-rose-500/10">
+                                        <TbStethoscope className="w-5 h-5 text-pink-500" />
+                                    </div>
+                                    <h3 className="text-sm font-semibold text-[#1a1a1a]">
                                         Patient Diagnoses
                                     </h3>
-                                    <span className="px-2 py-0.5 bg-[#427466]/10 text-[#427466] text-xs font-medium rounded-full">
+                                    <span className="px-2.5 py-0.5 bg-gradient-to-r from-[#427466]/10 to-[#427466]/5 text-[#427466] text-xs font-bold rounded-full">
                                         {diagnoses.length}
                                     </span>
                                 </div>
-                                {showDiagnoses ? (
-                                    <TbChevronUp className="w-5 h-5 text-[#666]" />
-                                ) : (
-                                    <TbChevronDown className="w-5 h-5 text-[#666]" />
-                                )}
+                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 ${showDiagnoses ? 'bg-[#427466]/10 rotate-180' : 'hover:bg-gray-100'}`}>
+                                    <TbChevronDown className="w-4 h-4 text-[#666]" />
+                                </div>
                             </button>
 
                             {showDiagnoses && (
                                 <div className="px-5 pb-5 border-t border-[#e5e5e5]">
-                                    <div className="grid grid-cols-3 gap-2.5 mt-4">
+                                    <div className="grid grid-cols-3 gap-3 mt-4">
                                         {diagnoses.map((diagnosis, index) => (
                                             <div
                                                 key={`${diagnosis.icd_code}-${index}`}
-                                                className="p-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:border-[#427466]/40 transition-all"
+                                                className="p-3 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:border-[#427466]/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 animate-fade-in-up"
+                                                style={{ animationDelay: `${index * 60}ms`, borderLeft: '3px solid #427466' }}
                                             >
                                                 {/* Diagnosis Name */}
-                                                <div className="mb-2">
-                                                    <span className="text-xs font-bold text-[#1a1a1a] line-clamp-2 leading-tight">
-                                                        {diagnosisNames[diagnosis.cui]}
-                                                    </span>
-                                                </div>
+                                                <span className="text-xs font-bold text-[#1a1a1a] line-clamp-2 leading-tight block mb-2">
+                                                    {diagnosisNames[diagnosis.cui]}
+                                                </span>
 
                                                 {/* Codes Row */}
                                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                                    {/* ICD Badge */}
-                                                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#427466]/10 rounded">
+                                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-[#427466]/10 to-[#427466]/5 rounded-md">
                                                         <span className="text-[10px] font-semibold text-[#427466]">
-                                                            ICD-{diagnosis.icd_version}:{diagnosis.icd_code}
+                                                            ICD-{diagnosis.icd_version}: {diagnosis.icd_code}
                                                         </span>
                                                     </div>
                                                 </div>
 
                                                 {/* CUI */}
-                                                <div className="mt-1.5">
-                                                    <span className="text-[10px] font-mono text-[#666]">
-                                                        {diagnosis.cui}
-                                                    </span>
-                                                </div>
+                                                <span className="text-[10px] font-mono text-[#999] mt-1.5 block">
+                                                    {diagnosis.cui}
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
@@ -808,81 +885,125 @@ export default function PatientDR() {
 
                     {/* Two Column Layout */}
                     <div className="grid grid-cols-[1fr_450px] gap-5">
-                        {/* Left Panel - Network */}
-                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 relative overflow-hidden h-[520px] animate-fade-in">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-sm font-semibold text-[#333] flex items-center gap-2">
-                                    <TbNetwork className="w-4 h-4 text-[#427466]" />
-                                    Patient - Drug Network
-                                </h3>
-                                <div className="flex gap-2">
-                                    <button onClick={handleZoomIn} className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">
-                                        <TbZoomIn className="w-5 h-5 text-[#666]" />
-                                    </button>
-                                    <button onClick={handleZoomOut} className="w-10 h-10 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors">
-                                        <TbZoomOut className="w-5 h-5 text-[#666]" />
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Left Panel — Network */}
+                        <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden h-[520px] animate-fade-in-up relative" style={{ animationDelay: '300ms' }}>
+                            {/* Gradient Accent Strip */}
+                            <div className="h-1 bg-gradient-to-r from-[#427466] via-[#5BA899] to-[#427466]" />
 
-                            <div
-                                className="h-[calc(100%-80px)]"
-                                style={{ transform: `scale(${zoom})`, transition: 'transform 0.3s ease', transformOrigin: 'center' }}
-                            >
-                                {loading ? (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <div className="text-center">
-                                            <TbLoader2 className="w-12 h-12 text-[#427466] animate-spin mx-auto mb-2" />
-                                            <p className="text-[#666]">Loading recommendations...</p>
+                            <div className="p-5 h-[calc(100%-4px)]">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-sm font-semibold text-[#1a1a1a] flex items-center gap-2">
+                                        <div className="p-1 rounded-md bg-[#427466]/10">
+                                            <TbNetwork className="w-4 h-4 text-[#427466]" />
                                         </div>
+                                        Patient — Drug Network
+                                    </h3>
+                                    <div className="flex gap-1.5">
+                                        <button onClick={handleZoomIn} className="w-9 h-9 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#427466]/5 hover:border-[#427466]/30 transition-all duration-200 cursor-pointer">
+                                            <TbZoomIn className="w-4 h-4 text-[#666]" />
+                                        </button>
+                                        <button onClick={handleZoomOut} className="w-9 h-9 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#427466]/5 hover:border-[#427466]/30 transition-all duration-200 cursor-pointer">
+                                            <TbZoomOut className="w-4 h-4 text-[#666]" />
+                                        </button>
+                                        <button onClick={handleZoomReset} className="w-9 h-9 flex items-center justify-center border border-[#e5e5e5] rounded-lg hover:bg-[#427466]/5 hover:border-[#427466]/30 transition-all duration-200 cursor-pointer">
+                                            <TbArrowsMaximize className="w-4 h-4 text-[#666]" />
+                                        </button>
                                     </div>
-                                ) : (
-                                    <NetworkGraph
-                                        patientId={searchedPatientId}
-                                        recommendations={recommendations}
-                                        drugNames={drugNames}
-                                    />
-                                )}
-                            </div>
+                                </div>
 
-                            <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
-                                <p className="text-sm text-[#666]">High color intensity - High confidence</p>
+                                <div
+                                    className="h-[calc(100%-80px)]"
+                                    style={{ transform: `scale(${zoom})`, transition: 'transform 0.3s ease', transformOrigin: 'center' }}
+                                >
+                                    {loading ? (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <div className="text-center">
+                                                <div className="relative">
+                                                    <TbLoader2 className="w-12 h-12 text-[#427466] animate-spin mx-auto mb-3" />
+                                                    <div className="absolute inset-0 w-12 h-12 mx-auto rounded-full bg-[#427466]/10 animate-ping" />
+                                                </div>
+                                                <p className="text-[#666] text-sm font-medium">Analyzing patient network...</p>
+                                                <p className="text-[#bbb] text-xs mt-1">This may take a moment</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <NetworkGraph
+                                            patientId={searchedPatientId}
+                                            recommendations={recommendations}
+                                            drugNames={drugNames}
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Legend */}
+                                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full border border-[#e5e5e5] shadow-sm">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-3 h-3 rounded-full bg-[#7fbc9d]" />
+                                        <span className="text-[10px] text-[#888] font-medium">Low</span>
+                                    </div>
+                                    <div className="w-16 h-2 rounded-full bg-gradient-to-r from-[#7fbc9d] to-[#2d6b4e]" />
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-3 h-3 rounded-full bg-[#2d6b4e]" />
+                                        <span className="text-[10px] text-[#888] font-medium">High</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Right Panel - Drugs List */}
-                        <div className="bg-white rounded-2xl border border-[#e5e5e5] p-5 h-[520px] flex flex-col">
-                            <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-                                <h3 className="text-sm font-semibold text-[#333] tracking-wide">
-                                    TOP 5 RECOMMENDED DRUGS
-                                </h3>
-                                <TbStar className="w-4 h-4 text-[#EAB308] fill-[#EAB308]" />
-                            </div>
+                        {/* Right Panel — Drugs List */}
+                        <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden h-[520px] flex flex-col animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                            {/* Gradient Accent Strip */}
+                            <div className="h-1 bg-gradient-to-r from-amber-400 via-emerald-400 to-cyan-400" />
 
-                            <div className="flex-1 overflow-y-auto pr-2">
-                                <div className="flex flex-col gap-3">
-                                    {recommendations.length > 0 ? (
-                                        recommendations.map((drug, index) => (
-                                            <DrugCard
-                                                key={drug.cuid}
-                                                drug={drug}
-                                                rank={index + 1}
-                                                isTop={index === 0}
-                                                maxScore={maxScore}
-                                            />
-                                        ))
-                                    ) : (
-                                        [1, 2, 3, 4, 5].map((rank) => (
-                                            <div key={rank} className="p-4 rounded-xl border border-[#e5e5e5] bg-white">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#E5E7EB] text-[#333] font-bold">
-                                                        {rank}
-                                                    </span>
-                                                    <span className="text-[#999]">—</span>
+                            <div className="p-5 flex flex-col h-[calc(100%-4px)]">
+                                <div className="flex items-center gap-2 mb-4 flex-shrink-0">
+                                    <div className="p-1 rounded-md bg-amber-500/10">
+                                        <TbStar className="w-4 h-4 text-amber-500 fill-amber-500" />
+                                    </div>
+                                    <h3 className="text-sm font-semibold text-[#1a1a1a] tracking-wide">
+                                        TOP 5 RECOMMENDATIONS
+                                    </h3>
+                                    {/* {recommendations.length > 0 && (
+                                        <span className="ml-auto px-2.5 py-0.5 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-600 text-[10px] font-bold rounded-full flex items-center gap-1">
+                                            <TbSparkles className="w-3 h-3" />
+                                            AI Powered
+                                        </span>
+                                    )} */}
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto pr-1">
+                                    <div className="flex flex-col gap-3">
+                                        {recommendations.length > 0 ? (
+                                            recommendations.map((drug, index) => (
+                                                <DrugCard
+                                                    key={drug.cuid}
+                                                    drug={drug}
+                                                    rank={index + 1}
+                                                    isTop={index === 0}
+                                                    maxScore={maxScore}
+                                                    index={index}
+                                                />
+                                            ))
+                                        ) : (
+                                            // Skeleton placeholders
+                                            [1, 2, 3, 4, 5].map((rank) => (
+                                                <div key={rank} className="p-4 rounded-2xl border border-[#e5e5e5] bg-gradient-to-br from-gray-50 to-white animate-fade-in-up" style={{ animationDelay: `${rank * 80}ms` }}>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#f0f0f0] text-[#bbb] font-bold text-sm">
+                                                            {rank}
+                                                        </span>
+                                                        <div className="flex-1">
+                                                            <div className="h-3 bg-[#f0f0f0] rounded-full w-32 mb-2" />
+                                                            <div className="h-2 bg-[#f5f5f5] rounded-full w-20" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-3 h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+                                                        <div className="h-full bg-[#f5f5f5] rounded-full w-0" />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
-                                    )}
+                                            ))
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -890,24 +1011,13 @@ export default function PatientDR() {
                 </div>
             </main>
 
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.3s ease-out;
-                }
-                
+            {/* CSS Animations */}
+            <style jsx global>{`
                 @keyframes fade-in {
                     from { opacity: 0; }
                     to { opacity: 1; }
                 }
-                
-                .animate-fade-in {
-                    animation: fade-in 0.4s ease-out forwards;
-                }
-                
+
                 @keyframes fade-in-up {
                     from {
                         opacity: 0;
@@ -918,10 +1028,59 @@ export default function PatientDR() {
                         transform: translateY(0);
                     }
                 }
-                
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                @keyframes pulse-subtle {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.7; transform: scale(0.97); }
+                }
+
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+
+                .animate-fade-in {
+                    animation: fade-in 0.4s ease-out forwards;
+                }
+
                 .animate-fade-in-up {
                     animation: fade-in-up 0.6s ease-out forwards;
                     opacity: 0;
+                }
+
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out;
+                }
+
+                .animate-pulse-subtle {
+                    animation: pulse-subtle 2.5s ease-in-out infinite;
+                }
+
+                .animate-shimmer {
+                    animation: shimmer 2s infinite;
+                }
+
+                /* Custom scrollbar for drug list */
+                .overflow-y-auto::-webkit-scrollbar {
+                    width: 4px;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-thumb {
+                    background: #d1d5db;
+                    border-radius: 20px;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                    background: #9ca3af;
                 }
             `}</style>
         </div>
