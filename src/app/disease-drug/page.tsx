@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbHome, TbLayoutDashboard, TbUserHeart, TbChartBar, TbGraph, TbNetwork, TbChevronDown } from "react-icons/tb";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbStar, TbHome, TbLayoutDashboard, TbUserHeart, TbChartBar, TbGraph, TbNetwork, TbChevronDown, TbRoute } from "react-icons/tb";
 
 export default function DiseaseDrug() {
     const pathname = usePathname();
@@ -24,6 +24,7 @@ export default function DiseaseDrug() {
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
+        { name: "Methodology", href: "/methodology", icon: TbRoute },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];

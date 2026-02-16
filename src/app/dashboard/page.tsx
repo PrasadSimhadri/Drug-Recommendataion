@@ -7,7 +7,7 @@ import {
     TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard,
     TbUserHeart, TbNetwork, TbChevronDown, TbGraph, TbChartBar,
     TbFilter, TbDatabase, TbSearch, TbLoader2, TbClick,
-    TbAdjustments, TbHash
+    TbAdjustments, TbHash, TbRoute
 } from "react-icons/tb";
 import GraphView from "./components/GraphView";
 
@@ -38,6 +38,7 @@ export default function Dashboard() {
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
+        { name: "Methodology", href: "/methodology", icon: TbRoute },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];

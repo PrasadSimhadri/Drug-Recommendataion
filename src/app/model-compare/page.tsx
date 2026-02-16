@@ -8,7 +8,7 @@ import {
     TbSparkles, TbGraph, TbTopologyRing, TbLayersLinked, TbBinaryTree,
     TbCheck, TbRadar
 } from "react-icons/tb";
-import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart, TbChevronDown } from "react-icons/tb";
+import { TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard, TbUserHeart, TbChevronDown, TbRoute } from "react-icons/tb";
 
 
 // Model data with descriptions and metrics
@@ -476,6 +476,7 @@ export default function ModelComparison() {
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
+        { name: "Methodology", href: "/methodology", icon: TbRoute },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];

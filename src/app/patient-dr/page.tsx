@@ -8,7 +8,7 @@ import {
     TbChevronDown, TbChevronUp, TbPill, TbTag, TbCode, TbDatabase,
     TbSearch, TbUser, TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork,
     TbStethoscope, TbFileText, TbChartBar, TbGraph, TbSparkles,
-    TbHeartbeat, TbTargetArrow, TbActivity
+    TbHeartbeat, TbTargetArrow, TbActivity, TbRoute
 } from "react-icons/tb";
 
 // API base URLs
@@ -548,6 +548,7 @@ export default function PatientDR() {
 
     const navItems = [
         { name: "Home", href: "/", icon: TbHome },
+        { name: "Methodology", href: "/methodology", icon: TbRoute },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
