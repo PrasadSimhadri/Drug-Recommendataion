@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork, TbChartBar, TbGraph, TbChevronDown, TbRoute } from "react-icons/tb";
+import { TbHome, TbLayoutDashboard, TbUserHeart, TbNetwork, TbChartBar, TbGraph, TbChevronDown, TbRoute, TbChartLine } from "react-icons/tb";
 
 export default function Home() {
   const pathname = usePathname();
@@ -24,6 +24,7 @@ export default function Home() {
     { name: "Home", href: "/", icon: TbHome },
     { name: "Methodology", href: "/methodology", icon: TbRoute },
     { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
+    { name: "Model Graphs", href: "/model-graphs", icon: TbChartLine },
     { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
   ];
 

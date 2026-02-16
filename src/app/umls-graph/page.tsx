@@ -22,6 +22,7 @@ import {
     TbChevronDown,
     TbChartBar,
     TbRoute,
+    TbChartLine,
 } from "react-icons/tb";
 import { Network } from "vis-network";
 
@@ -56,6 +57,7 @@ export default function UMLSGraphPage() {
         { name: "Home", href: "/", icon: TbHome },
         { name: "Methodology", href: "/methodology", icon: TbRoute },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
+        { name: "Model Graphs", href: "/model-graphs", icon: TbChartLine },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
 

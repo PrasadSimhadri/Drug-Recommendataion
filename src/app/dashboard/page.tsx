@@ -7,7 +7,7 @@ import {
     TbZoomIn, TbZoomOut, TbArrowsMaximize, TbHome, TbLayoutDashboard,
     TbUserHeart, TbNetwork, TbChevronDown, TbGraph, TbChartBar,
     TbFilter, TbDatabase, TbSearch, TbLoader2, TbClick,
-    TbAdjustments, TbHash, TbRoute
+    TbAdjustments, TbHash, TbRoute, TbChartLine
 } from "react-icons/tb";
 import GraphView from "./components/GraphView";
 
@@ -40,6 +40,7 @@ export default function Dashboard() {
         { name: "Home", href: "/", icon: TbHome },
         { name: "Methodology", href: "/methodology", icon: TbRoute },
         { name: "Patient DR", href: "/patient-dr", icon: TbUserHeart },
+        { name: "Model Graphs", href: "/model-graphs", icon: TbChartLine },
         { name: "Model Comparison", href: "/model-compare", icon: TbChartBar },
     ];
 
