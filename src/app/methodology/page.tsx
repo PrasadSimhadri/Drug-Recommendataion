@@ -210,28 +210,52 @@ function PipelineCard({
                 className={`pipeline-card relative h-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95'}`}
                 style={{ transitionDelay: `${delay}ms` }}
             >
-                <div className="relative h-full bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.1)] transition-all duration-500 overflow-hidden group">
-                    {/* Top accent gradient */}
-                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient} shimmer-line`} />
+                {/* Animated gradient border */}
+                <div className="absolute -inset-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 gradient-border-spin pointer-events-none z-0"
+                    style={{ background: `conic-gradient(from 0deg, ${color}40, transparent, ${color}20, transparent, ${color}40)` }} />
 
-                    {/* Glow on hover */}
+                <div
+                    className="relative h-full rounded-2xl border border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-all duration-500 overflow-hidden group"
+                    style={{
+                        background: `linear-gradient(135deg, rgba(255,255,255,0.92) 0%, ${color}06 30%, ${color}0A 70%, rgba(255,255,255,0.95) 100%)`,
+                        backdropFilter: 'blur(20px)',
+                    }}
+                >
+                    {/* Top accent gradient with shimmer */}
+                    <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${gradient} shimmer-line`} />
+
+                    {/* Corner glow orbs */}
+                    <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-[0.07] group-hover:opacity-[0.15] transition-all duration-700 float-slow"
+                        style={{ background: `radial-gradient(circle, ${color}, transparent 70%)` }} />
+                    <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full blur-2xl opacity-[0.05] group-hover:opacity-[0.12] transition-all duration-700 float-slow-reverse"
+                        style={{ background: `radial-gradient(circle, ${color}, transparent 70%)` }} />
+
+                    {/* Hover glow overlay */}
                     <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                        style={{ boxShadow: `inset 0 0 60px ${color}08` }} />
+                        style={{ boxShadow: `inset 0 0 80px ${color}0A, 0 0 40px ${color}08` }} />
 
-                    {/* Main content - always visible */}
-                    <div className="p-5 md:p-6">
+                    {/* Animated particles */}
+                    <div className="absolute top-4 right-4 w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-40 transition-all duration-700 particle-float"
+                        style={{ backgroundColor: color }} />
+                    <div className="absolute top-12 right-10 w-1 h-1 rounded-full opacity-0 group-hover:opacity-30 transition-all duration-700 particle-float-delay"
+                        style={{ backgroundColor: color }} />
+                    <div className="absolute bottom-8 right-6 w-1 h-1 rounded-full opacity-0 group-hover:opacity-25 transition-all duration-700 particle-float-delay-2"
+                        style={{ backgroundColor: color }} />
+
+                    {/* Main content */}
+                    <div className="relative z-10 p-5 md:p-6">
                         {/* Header row */}
                         <div className="flex items-center gap-3 mb-3">
                             <div
-                                className={`flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}
+                                className={`flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 icon-glow`}
                                 style={{ boxShadow: `0 6px 20px ${color}30` }}
                             >
                                 <Icon className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold px-2 py-0.5 rounded-full"
-                                        style={{ background: `${color}12`, color: color }}>
+                                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold px-2 py-0.5 rounded-full border"
+                                        style={{ background: `${color}12`, color: color, borderColor: `${color}25` }}>
                                         {stageNum}
                                     </span>
                                     <span className="text-[11px] text-[#aaa]">{subtitle}</span>
@@ -256,11 +280,12 @@ function PipelineCard({
                             {outputs.map((f, i) => <FileBadge key={i} name={f.name} type={f.type} />)}
                         </div>
 
-                        {/* Stats (always visible) */}
+                        {/* Stats */}
                         {stats && stats.length > 0 && (
-                            <div className={`flex gap-4 mb-3 transition-all duration-500 delay-400 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+                            <div className={`flex gap-3 mb-3 transition-all duration-500 delay-400 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
                                 {stats.map((s, i) => (
-                                    <div key={i} className="px-3 py-1.5 rounded-lg bg-[#f5f5f5] border border-[#eee]">
+                                    <div key={i} className="px-3 py-1.5 rounded-lg border transition-all duration-300 hover:scale-105"
+                                        style={{ background: `${color}08`, borderColor: `${color}18` }}>
                                         <span className="text-base font-bold" style={{ color }}>
                                             <AnimatedNumber value={s.value} trigger={isVisible} suffix={s.suffix} />
                                         </span>
@@ -273,11 +298,12 @@ function PipelineCard({
                         {/* Accordion toggle */}
                         <button
                             onClick={() => setExpanded(!expanded)}
-                            className="flex items-center gap-1.5 text-xs font-semibold transition-all duration-300 cursor-pointer group/btn"
+                            className="flex items-center gap-1.5 text-xs font-semibold transition-all duration-300 cursor-pointer group/btn hover:gap-2.5"
                             style={{ color }}
                         >
                             <TbChevronRight className={`w-4 h-4 transition-transform duration-300 ${expanded ? 'rotate-90' : ''} group-hover/btn:translate-x-0.5`} />
                             {expanded ? "Hide equation" : "View equation"}
+                            <span className="block w-0 group-hover/btn:w-8 h-px transition-all duration-300" style={{ backgroundColor: color }} />
                         </button>
 
                         {/* Expandable equation section */}
@@ -510,7 +536,7 @@ export default function Methodology() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#F9F9F9] relative">
+        <div className="bg-[#F9F9F9] relative overflow-hidden">
             {/* Background pattern */}
             <div
                 className="absolute inset-0 z-0 pointer-events-none"
@@ -593,6 +619,11 @@ export default function Methodology() {
 
             {/* ── Main Content ── */}
             <main className="relative z-10 w-full px-8 py-6">
+
+                {/* Floating ambient orbs */}
+                <div className="fixed top-20 left-10 w-64 h-64 rounded-full blur-[100px] bg-[#427466]/[0.04] pointer-events-none float-orb-1 z-0" />
+                <div className="fixed top-1/3 right-20 w-80 h-80 rounded-full blur-[120px] bg-sky-500/[0.03] pointer-events-none float-orb-2 z-0" />
+                <div className="fixed bottom-40 left-1/4 w-72 h-72 rounded-full blur-[100px] bg-violet-500/[0.03] pointer-events-none float-orb-3 z-0" />
 
                 {/* ─── Hero Section ─── */}
                 <div ref={heroRef} className={`mb-8 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -695,14 +726,14 @@ export default function Methodology() {
                 </div>
 
                 {/* ─── Footer ─── */}
-                <div className="mt-10 mb-8 flex justify-center">
+                {/* <div className="mt-10 mb-8 flex justify-center">
                     <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/80 backdrop-blur-sm border border-[#e5e5e5] rounded-full shadow-sm hover:shadow-md transition-all duration-300">
                         <TbCircleCheck className="w-5 h-5 text-[#427466]" />
                         <span className="text-sm text-[#666] font-medium">
                             Pipeline complete — data is ready for knowledge graph construction & model training
                         </span>
                     </div>
-                </div>
+                </div> */}
             </main>
 
             {/* ── CSS Animations ── */}
@@ -799,6 +830,7 @@ export default function Methodology() {
 
                 /* Scrollbar styling */
                 ::-webkit-scrollbar { width: 6px; }
+                ::-webkit-scrollbar-track { background: transparent; }
                 ::-webkit-scrollbar-thumb {
                     background: rgba(66, 116, 102, 0.3);
                     border-radius: 3px;
@@ -811,6 +843,79 @@ export default function Methodology() {
                 .equation-block sub {
                     font-size: 0.7em;
                     vertical-align: sub;
+                }
+
+                /* Floating orbs - ambient background animation */
+                .float-orb-1 {
+                    animation: floatOrb1 20s ease-in-out infinite;
+                }
+                @keyframes floatOrb1 {
+                    0%, 100% { transform: translate(0, 0) scale(1); }
+                    33% { transform: translate(60px, 40px) scale(1.1); }
+                    66% { transform: translate(-30px, 80px) scale(0.95); }
+                }
+                .float-orb-2 {
+                    animation: floatOrb2 25s ease-in-out infinite;
+                }
+                @keyframes floatOrb2 {
+                    0%, 100% { transform: translate(0, 0) scale(1); }
+                    33% { transform: translate(-70px, 50px) scale(1.15); }
+                    66% { transform: translate(40px, -60px) scale(0.9); }
+                }
+                .float-orb-3 {
+                    animation: floatOrb3 22s ease-in-out infinite;
+                }
+                @keyframes floatOrb3 {
+                    0%, 100% { transform: translate(0, 0) scale(1); }
+                    50% { transform: translate(50px, -40px) scale(1.08); }
+                }
+
+                /* Card corner glow float */
+                .float-slow {
+                    animation: floatSlow 6s ease-in-out infinite;
+                }
+                @keyframes floatSlow {
+                    0%, 100% { transform: translate(0, 0); }
+                    50% { transform: translate(-8px, 8px); }
+                }
+                .float-slow-reverse {
+                    animation: floatSlowReverse 7s ease-in-out infinite;
+                }
+                @keyframes floatSlowReverse {
+                    0%, 100% { transform: translate(0, 0); }
+                    50% { transform: translate(6px, -6px); }
+                }
+
+                /* Particle floats inside cards on hover */
+                .particle-float {
+                    animation: particleFloat 3s ease-in-out infinite;
+                }
+                @keyframes particleFloat {
+                    0%, 100% { transform: translate(0, 0) scale(1); }
+                    50% { transform: translate(-5px, -8px) scale(1.5); }
+                }
+                .particle-float-delay {
+                    animation: particleFloat 3.5s ease-in-out 0.5s infinite;
+                }
+                .particle-float-delay-2 {
+                    animation: particleFloat 4s ease-in-out 1s infinite;
+                }
+
+                /* Icon glow pulse on hover */
+                .group:hover .icon-glow {
+                    animation: iconGlow 1.5s ease-in-out infinite;
+                }
+                @keyframes iconGlow {
+                    0%, 100% { filter: brightness(1) drop-shadow(0 0 0px transparent); }
+                    50% { filter: brightness(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
+                }
+
+                /* Gradient border spin */
+                .gradient-border-spin {
+                    animation: borderSpin 4s linear infinite;
+                }
+                @keyframes borderSpin {
+                    to { rotate: 360deg; }
                 }
             `}</style>
         </div>
