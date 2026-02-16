@@ -555,10 +555,10 @@ export default function Methodology() {
                     </h1>
                 </Link>
 
-                <nav className="flex items-center gap-4 pr-6">
+                <nav className="flex items-center gap-3 pr-6">
                     <Link
                         href="/"
-                        className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === "/"
+                        className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-4 py-2 ${pathname === "/"
                             ? "bg-[#427466] text-white"
                             : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
                             }`}
@@ -570,7 +570,7 @@ export default function Methodology() {
                     <div className="relative" ref={graphDropdownRef}>
                         <button
                             onClick={() => setGraphDropdownOpen(!graphDropdownOpen)}
-                            className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${isGraphPage
+                            className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-4 py-2 ${isGraphPage
                                 ? "bg-[#427466] text-white"
                                 : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
                                 }`}
@@ -604,7 +604,7 @@ export default function Methodology() {
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-5 py-2 ${pathname === item.href
+                                className={`flex items-center gap-2 rounded-xl text-sm cursor-pointer font-medium transition-all duration-200 px-4 py-2 ${pathname === item.href
                                     ? "bg-[#427466] text-white"
                                     : "bg-[#D9D9D9] text-[#333333] hover:bg-[#c9c9c9]"
                                     }`}
